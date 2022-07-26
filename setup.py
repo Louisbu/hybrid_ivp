@@ -24,5 +24,7 @@ setuptools.setup(
         "numpy==1.19.5",
         "scipy>=1.0.1",
         "streamlit==1.11.0",
+        "tensorflow==2.9.1",
+        "tensorflow-probability==0.17.0",
     ],
 )
