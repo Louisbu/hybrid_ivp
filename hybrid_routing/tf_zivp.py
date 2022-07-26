@@ -1,7 +1,7 @@
 import numpy as np
 from jax import vmap, jacfwd, jacrev, jit
 import jax.numpy as jnp
-from hybrid_routing.tf_benchmark import background_vector_field
+from tf_benchmark import background_vector_field
 import tensorflow as tf
 import tensorflow_probability as tfp
 
@@ -31,12 +31,11 @@ def tf_wave(p, t, vel=0.5):
     vector_field = background_vector_field(x, y)
     dxdt = vel * tf.cos(theta) + vector_field[0]
     dydt = vel * tf.sin(theta) + vector_field[1]
-    vector_field = background_vector_field(x,y)
+    
     with tf.GradientTape(persistent=True) as tape:
         tape.watch(x)
         tape.watch(y)
-        x0 = tf.cos(2 * x - y - 6)
-        x1 = 2 / 3 * tf.sin(y) + x - 3
+        x0, x1 = background_vector_field(x,y)
     du = tape.jacobian(x0, [x,y])
     dv = tape.jacobian(x1, [x,y])
     print(du, dv)

@@ -5,9 +5,9 @@ import tensorflow as tf
 def R(a, b, x, y):
     coeff = 1 / (3 * ((x - a) ** 2 + (y - b) ** 2) + 1)
     R = (coeff * (-y + b), coeff * (x - a))
-    return tf.constant(jnp.asarray(R))
+    return R
 
-
+@tf.function
 def background_vector_field(x: tf.constant, y: tf.constant) -> tf.constant:
 
     # field = (0.01 * (y + 1), 0.01 * (-x - 3))
@@ -23,4 +23,4 @@ def background_vector_field(x: tf.constant, y: tf.constant) -> tf.constant:
     # field = (np.cos(2 * x - y - 6), 1 / 3 * jnp.sin(y) + x - 3)
     # W = (0,0)
     # W = (x+2,-x*3)
-    return (x,y)
+    return (x, y)
