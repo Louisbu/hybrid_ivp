@@ -1,9 +1,8 @@
 import numpy as np
-from jax import vmap, jacfwd, jacrev, jit
-import jax.numpy as jnp
+from hybrid_routing.tensorflow.benchmark import background_vector_field
+from jax import jacfwd, jacrev, jit
+
 import tensorflow as tf
-import tensorflow_probability as tfp
-from hybrid_routing.tf_benchmark import background_vector_field
 
 
 def tf_dvdx(x, y):
@@ -25,6 +24,7 @@ def tf_dudy(x, y):
     duy = jit(jacfwd(background_vector_field, argnums=0))
     return duy(x, y)[1]
 
+
 # jacobian of the vector field must be declared inside the tensorflow "with" environment
 def tf_wave(t, p, vel=1):
     x, y, theta = tf.constant(p)
@@ -35,18 +35,17 @@ def tf_wave(t, p, vel=1):
     with tf.GradientTape(persistent=True) as tape:
         tape.watch(x)
         tape.watch(y)
-        x0, x1 = background_vector_field(x,y)
-    du = tape.jacobian(x0, [x,y])
-    dv = tape.jacobian(x1, [x,y])
+        x0, x1 = background_vector_field(x, y)
+    du = tape.jacobian(x0, [x, y])
+    dv = tape.jacobian(x1, [x, y])
     dthetadt = (
         du[1] * tf.sin(theta) ** 2
         + tf.sin(theta) * tf.cos(theta) * (du[0] - dv[1])
         - dv[0] * tf.cos(theta) ** 2
     )
-    #print(type(dxdt))
-    p = tf.convert_to_tensor([dxdt, dydt, dthetadt], dtype = tf.float32)
+    # print(type(dxdt))
+    p = tf.convert_to_tensor([dxdt, dydt, dthetadt], dtype=tf.float32)
     return tf.constant(p)
-
 
 
 def dist_to_dest(p0, p1):
@@ -64,5 +63,8 @@ def min_dist_to_dest(candidates, pN):
             best_point = candidates[i]
     return best_point
 
-if __name__=="__main__":
-    tf_wave([1., 1., 0.2], np.linspace(0,10,1))
+
+if __name__ == "__main__":
+    p = [1.0, 1.0, 0.2]
+    t = np.linspace(0, 10, 1)
+    print(tf_wave(t, p))
