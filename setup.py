@@ -18,7 +18,7 @@ setuptools.setup(
     python_requires=">=3.9",
     setup_requires=["setuptools_scm"],
     install_requires=[
-        "jax==0.2.17",
+        "jax==0.3.14",
         "jaxlib==0.3.14",
         "matplotlib==2.1.1",
         "numpy>=1.19.5",
