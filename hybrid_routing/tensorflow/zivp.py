@@ -1,33 +1,11 @@
 import numpy as np
 from hybrid_routing.tensorflow.benchmark import background_vector_field
-from jax import jacfwd, jacrev, jit
 
 import tensorflow as tf
 
 
-def tf_dvdx(x, y):
-    dvx = jit(jacrev(background_vector_field, argnums=1))
-    return dvx(x, y)[0]
-
-
-def tf_dvdy(x, y):
-    dvy = jit(jacrev(background_vector_field, argnums=1))
-    return dvy(x, y)[1]
-
-
-def tf_dudx(x, y):
-    dux = jit(jacfwd(background_vector_field, argnums=0))
-    return dux(x, y)[0]
-
-
-def tf_dudy(x, y):
-    duy = jit(jacfwd(background_vector_field, argnums=0))
-    return duy(x, y)[1]
-
-
-# jacobian of the vector field must be declared inside the tensorflow "with" environment
 def tf_wave(
-    t: tf.Tensor, p: tf.Tensor, vel: tf.Tensor = tf.constant(1.0, dtype=tf.float32)
+    t: tf.Tensor, p: tf.Tensor, vel: tf.Tensor = tf.constant(3, dtype=tf.float32)
 ) -> tf.Tensor:
     x, y, theta = p
 
@@ -42,11 +20,11 @@ def tf_wave(
     du = tape.jacobian(x0, [x, y])
     dv = tape.jacobian(x1, [x, y])
     dthetadt = (
-        tf.math.multiply(du[1], tf.math.pow(tf.sin(theta), 2))
+        tf.math.multiply(dv[0], tf.math.pow(tf.sin(theta), 2))
         + tf.math.multiply(
             tf.math.multiply(tf.sin(theta), tf.cos(theta)), du[0] - dv[1]
         )
-        - tf.math.multiply(dv[0], tf.math.pow(tf.cos(theta), 2))
+        - tf.math.multiply(du[1], tf.math.pow(tf.cos(theta), 2))
     )
     p_new = tf.convert_to_tensor([dxdt, dydt, dthetadt], dtype=tf.float32)
     return tf.constant(p_new)
