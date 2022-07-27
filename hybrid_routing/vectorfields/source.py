@@ -7,4 +7,4 @@ class Source(Vectorfield):
         pass
 
     def get_current(self, x, y):
-        return jnp.asarray([x / 3 + 3, y / 3 + 3])
+        return jnp.asarray([(x - 5) / 75, (y - 5) / 75])
