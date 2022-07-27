@@ -27,7 +27,7 @@ class Vectorfield(ABC):
         duy = jit(jacfwd(self.get_current, argnums=0))
         return duy(x, y)[1]
 
-    def wave(self, p, t, vel=jnp.float16(0.5)):
+    def wave(self, p, t, vel=jnp.float16(0.1)):
         x, y, theta = p
         vector_field = self.get_current(x, y)
         dxdt = vel * jnp.cos(theta) + vector_field[0]

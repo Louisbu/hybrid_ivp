@@ -7,4 +7,4 @@ class ConstantCurrent(Vectorfield):
         pass
 
     def get_current(self, x, y):
-        return jnp.asarray([1.0, 1.0])
+        return jnp.asarray([1.0, -1.0])

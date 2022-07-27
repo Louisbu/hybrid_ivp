@@ -7,4 +7,4 @@ class NoCurrent(Vectorfield):
         pass
 
     def get_current(self, x, y):
-        return jnp.asarray([0, 0])
+        return jnp.asarray([0., 0.])

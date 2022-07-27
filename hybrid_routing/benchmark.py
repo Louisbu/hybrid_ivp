@@ -35,3 +35,5 @@ def steady_current(x: jnp.array, y: jnp.array) -> jnp.array:
 
 def periodic_current(x: jnp.array, y: jnp.array) -> jnp.array:
     return jnp.array([jnp.sin(x), jnp.cos(x)])
+
+
