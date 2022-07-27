@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 import streamlit as st
 from PIL import Image
 
-from hybrid_routing.benchmark import background_vector_field
+from hybrid_routing.tf_utils.benchmark import background_vector_field
 from hybrid_routing.optimize import optimize_route
 from hybrid_routing.plot import plot_vector_field
 
