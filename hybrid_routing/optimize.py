@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.integrate import odeint
 import tensorflow as tf
 import tensorflow_probability as tfp
-from hybrid_routing.zivp import dist_to_dest, min_dist_to_dest, wave
+
+from hybrid_routing.tf_utils.zivp import dist_to_dest, min_dist_to_dest, wave
 
 
 def optimize_route(
@@ -25,9 +25,11 @@ def optimize_route(
     x = x_start
     y = y_start
 
-    t = np.linspace(0, 2, step_time)
+    t = tf.constant(np.linspace(0, 2, step_time))
+    p = tf.constant([x, y, theta])
 
     steps = []
+    solver = tfp.math.ode.BDF()
 
     while dist_to_dest((x, y), (x_end, y_end)) > 3:
 
@@ -39,7 +41,7 @@ def optimize_route(
         )
 
         for theta in thetas:
-            sol = odeint(wave, [x, y, theta], t, args=(vel,))
+            sol = solver.solve(wave, t[0], p, t[1:])
             candidates.append(sol[-1])
 
         for pt in candidates:
