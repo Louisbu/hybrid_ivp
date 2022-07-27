@@ -24,7 +24,6 @@ import streamlit as st
 from PIL import Image
 
 from hybrid_routing.optimize import optimize_route
-from hybrid_routing.plot import plot_vector_field
 from hybrid_routing.vectorfields import *
 from hybrid_routing.vectorfields.base import Vectorfield
 
@@ -146,9 +145,7 @@ def plot_preview(x1, y1, x2, y2, angle_amplitude):
     x_down = x1 + dist * cos(angle_min)
     y_down = y1 + dist * sin(angle_min)
 
-    plot_vector_field(
-        vectorfield.get_current, x_min=X_MIN, x_max=X_MAX, y_min=Y_MIN, y_max=Y_MAX
-    )
+    vectorfield.plot(x_min=X_MIN, x_max=X_MAX, y_min=Y_MIN, y_max=Y_MAX)
     plt.plot([x1, x2], [y1, y2], "r--", alpha=0.8)
     plt.plot([x1, x_up], [y1, y_up], "g--", alpha=0.4)
     plt.plot([x1, x_down], [y1, y_down], "g--", alpha=0.4)
