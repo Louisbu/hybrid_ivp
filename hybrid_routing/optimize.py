@@ -3,10 +3,12 @@ import numpy as np
 import tensorflow as tf
 import tensorflow_probability as tfp
 
-from hybrid_routing.tf_utils.zivp import dist_to_dest, min_dist_to_dest, wave
+from hybrid_routing.tf_utils.zivp import dist_to_dest, min_dist_to_dest
+from hybrid_routing.vectorfields.base import Vectorfield
 
 
 def optimize_route(
+    vectorfield: Vectorfield,
     x_start: float,
     y_start: float,
     x_end: float,
@@ -25,8 +27,8 @@ def optimize_route(
     x = x_start
     y = y_start
 
-    t = tf.constant(np.linspace(0, 2, step_time))
-    p = tf.constant([x, y, theta])
+    t_init = tf.constant(0)
+    solution_times = tfp.math.ode.ChosenBySolver(tf.constant(step_time))
 
     steps = []
     solver = tfp.math.ode.BDF()
@@ -41,7 +43,8 @@ def optimize_route(
         )
 
         for theta in thetas:
-            sol = solver.solve(wave, t[0], p, t[1:])
+            p = tf.constant([x, y, theta])
+            sol = solver.solve(vectorfield.wave, t_init, p, solution_times)
             candidates.append(sol[-1])
 
         for pt in candidates:

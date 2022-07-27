@@ -14,6 +14,8 @@ The you can access the web in your PC by going to:
 http://localhost:8501
 """
 
+import inspect
+import sys
 from math import atan2, cos, pi, sin, sqrt
 from time import sleep
 
@@ -21,9 +23,10 @@ import matplotlib.pyplot as plt
 import streamlit as st
 from PIL import Image
 
-from hybrid_routing.tf_utils.benchmark import background_vector_field
 from hybrid_routing.optimize import optimize_route
 from hybrid_routing.plot import plot_vector_field
+from hybrid_routing.vectorfields import *
+from hybrid_routing.vectorfields.base import Vectorfield
 
 st.set_page_config(
     layout="centered", page_icon="img/dalhousie.png", page_title="Hybrid Routing"
@@ -43,6 +46,17 @@ with row0col2:
     st.markdown("A demostration of the ZIVP and DNJ algorithms.")
 
 st.markdown("---")
+
+################
+# Vector field #
+################
+
+dict_vectorfields = dict(
+    inspect.getmembers(sys.modules["hybrid_routing.vectorfields"], inspect.isclass)
+)
+
+vectorfield_name = st.selectbox("Vector field:", sorted(dict_vectorfields.keys()))
+vectorfield: Vectorfield = dict_vectorfields[vectorfield_name]()
 
 ###############
 # Coordinates #
@@ -133,7 +147,7 @@ def plot_preview(x1, y1, x2, y2, angle_amplitude):
     y_down = y1 + dist * sin(angle_min)
 
     plot_vector_field(
-        background_vector_field, x_min=X_MIN, x_max=X_MAX, y_min=Y_MIN, y_max=Y_MAX
+        vectorfield.get_current, x_min=X_MIN, x_max=X_MAX, y_min=Y_MIN, y_max=Y_MAX
     )
     plt.plot([x1, x2], [y1, y2], "r--", alpha=0.8)
     plt.plot([x1, x_up], [y1, y_up], "g--", alpha=0.4)
@@ -163,6 +177,7 @@ if do_run:
         x_start,
     ], [y_start]
     for (x, y, theta) in optimize_route(
+        vectorfield,
         x_start,
         y_start,
         x_end,
