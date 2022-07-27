@@ -20,11 +20,11 @@ setuptools.setup(
     install_requires=[
         "jax==0.3.14",
         "jaxlib==0.3.14",
-        "matplotlib==2.1.1",
-        "numpy>=1.19.5",
-        "scipy>=1.0.1",
+        "matplotlib",
+        "numpy",
+        "scipy",
         "streamlit==1.11.0",
-        "tensorflow==2.9.1",
-        "tensorflow-probability==0.17.0",
+        "tensorflow>=2.9.0",
+        "tensorflow-probability>=0.17.0",
     ],
 )
