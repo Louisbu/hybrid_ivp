@@ -173,7 +173,7 @@ if do_run:
     list_x, list_y = [
         x_start,
     ], [y_start]
-    for (x, y, theta) in optimize_route(
+    for candidates, idx_best in optimize_route(
         vectorfield,
         x_start,
         y_start,
@@ -184,12 +184,23 @@ if do_run:
         num_angles=num_angles,
         vel=vel,
     ):
-        if x < X_MIN or x > X_MAX or y < Y_MIN or y > Y_MAX:
-            break
-        list_x.append(x)
-        list_y.append(y)
         fig = plt.figure()
-        plt.plot(list_x, list_y, color="grey", linestyle="--", marker=".", alpha=0.6)
+        for idx, candidate in enumerate(candidates):
+            if idx == idx_best:
+                color = "green"
+                list_x.extend(candidate[:, 0])
+                list_y.extend(candidate[:, 1])
+                x, y, _ = candidate[-1]
+            else:
+                color = "grey"
+            plt.plot(
+                candidate[:, 0],
+                candidate[:, 1],
+                color=color,
+                linestyle=":",
+                alpha=0.4,
+            )
+        plt.plot(list_x, list_y, color="green", linestyle="--", alpha=0.6)
         plot_preview(x, y, x_end, y_end, angle)
         plot.pyplot(fig=fig)
 

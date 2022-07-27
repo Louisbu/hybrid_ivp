@@ -15,6 +15,7 @@ def optimize_route(
     y_start: float,
     x_end: float,
     y_end: float,
+    dist_min: float = 10,
     step_time: float = 20,
     angle_amplitude: float = 0.25,
     num_angles: int = 50,
@@ -37,7 +38,7 @@ def optimize_route(
     steps = []
     # solver = tfp.math.ode.BDF()
 
-    while dist_to_dest((x, y), (x_end, y_end)) > 3:
+    while dist_to_dest((x, y), (x_end, y_end)) > dist_min:
 
         candidates = []
         thetas = np.linspace(
@@ -51,17 +52,18 @@ def optimize_route(
             p = [x, y, theta]
             # sol = solver.solve(vectorfield.wave, t_init, p, solution_times)
             sol = odeint(vectorfield.wave, p, t, args=(vel,))
-            candidates.append(sol[-1])
+            candidates.append(sol)
 
         for pt in candidates:
-            plt.scatter(pt[0], pt[1], s=10, c="gray")
+            plt.plot(pt[:, 0], pt[:, 1], c="gray")
 
         x_old, y_old = x, y
-        x, y, theta = min_dist_to_dest(candidates, (x_end, y_end))
+        idx = min_dist_to_dest(candidates, (x_end, y_end))
+        x, y, theta = candidates[idx][-1]
         steps.append((x, y, theta))
         cone_center = theta
 
-        yield (x, y, theta)
+        yield candidates, idx
 
         if x == x_old and y == y_old:
             break

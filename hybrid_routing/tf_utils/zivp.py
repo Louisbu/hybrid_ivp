@@ -33,16 +33,14 @@ def dist_to_dest(p0, p1):
     return np.sqrt((p0[0] - p1[0]) ** 2 + (p0[1] - p1[1]) ** 2)
 
 
-def min_dist_to_dest(candidates, pN):
-    dist = []
-    min_dist = dist_to_dest(candidates[0], pN)
-    best_point = candidates[0]
-    for i in range(len(candidates)):
-        dist = dist_to_dest(candidates[i], pN)
+def min_dist_to_dest(list_candidates, pN):
+    min_dist = np.inf
+    for idx, candidate in enumerate(list_candidates):
+        dist = dist_to_dest(candidate[-1], pN)
         if dist < min_dist:
             min_dist = dist
-            best_point = candidates[i]
-    return best_point
+            idx_best_point = idx
+    return idx_best_point
 
 
 if __name__ == "__main__":
