@@ -1,9 +1,8 @@
-import numpy as np
-from jax import vmap, jacfwd, jacrev, jit
 import jax.numpy as jnp
-from hybrid_routing.benchmark import background_vector_field
-import tensorflow as tf
-import tensorflow_probability as tfp
+import numpy as np
+from hybrid_routing.jax_utils.benchmark import background_vector_field
+from jax import jacfwd, jacrev, jit
+
 
 def dvdx(x, y):
     dvx = jit(jacrev(background_vector_field, argnums=1))
@@ -54,17 +53,3 @@ def min_dist_to_dest(candidates, pN):
             min_dist = dist
             best_point = candidates[i]
     return best_point
-
-def tf_wave(p, t, vel=tf.constant(0.5)):
-    x, y, theta = p
-    vector_field = background_vector_field(x, y)
-    dxdt = vel * jnp.cos(theta) + vector_field[0]
-    dydt = vel * jnp.sin(theta) + vector_field[1]
-    # dthetadt = 0.01 * (-jnp.sin(theta) ** 2 - jnp.cos(theta) ** 2)
-    dthetadt = (
-        dvdx(x, y) * jnp.sin(theta) ** 2
-        + jnp.sin(theta) * jnp.cos(theta) * (dudx(x, y) - dvdy(x, y))
-        - dudy(x, y) * jnp.cos(theta) ** 2
-    )
-
-    return tf.convert_to_tensor[dxdt, dydt, dthetadt]

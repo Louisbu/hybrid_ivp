@@ -1,7 +1,6 @@
 import jax.numpy as jnp
+from hybrid_routing.jax_utils.benchmark import background_vector_field
 from jax import grad, jacfwd, jacrev, jit
-
-from hybrid_routing.benchmark import background_vector_field
 
 
 def cost_function(x, xp):
