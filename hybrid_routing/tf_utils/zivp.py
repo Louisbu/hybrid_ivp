@@ -1,10 +1,9 @@
 import numpy as np
-from hybrid_routing.tensorflow.benchmark import background_vector_field
-
 import tensorflow as tf
+from hybrid_routing.tf_utils.benchmark import background_vector_field
 
 
-def tf_wave(
+def wave(
     t: tf.Tensor, p: tf.Tensor, vel: tf.Tensor = tf.constant(3, dtype=tf.float32)
 ) -> tf.Tensor:
     x, y, theta = p
@@ -49,4 +48,4 @@ def min_dist_to_dest(candidates, pN):
 if __name__ == "__main__":
     p = tf.constant([1.0, 1.0, 0.2], dtype=tf.float32)
     t = tf.constant(np.linspace(0, 10, 1), dtype=tf.float32)
-    print(tf_wave(t, p))
+    print(wave(t, p))

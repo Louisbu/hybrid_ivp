@@ -1,5 +1,5 @@
 import jax.numpy as jnp
-from hybrid_routing.tensorflow.benchmark import background_vector_field
+from hybrid_routing.tf_utils.benchmark import background_vector_field
 from jax import grad, jacfwd, jacrev, jit
 
 
