@@ -39,7 +39,7 @@ def optimize_route(
         )
 
         for theta in thetas:
-            sol = tfp.math.ode.BDF().Solver(wave, [x, y, theta], t, args=(vel,))
+            sol = odeint(wave, [x, y, theta], t, args=(vel,))
             candidates.append(sol[-1])
 
         for pt in candidates:
