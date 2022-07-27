@@ -7,4 +7,4 @@ class Sink(Vectorfield):
         pass
 
     def get_current(self, x, y):
-        return jnp.asarray([-x / 3 - 2, -y / 3 - 2])
+        return jnp.asarray([-x / 75, -y / 75])
