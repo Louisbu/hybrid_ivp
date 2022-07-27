@@ -16,7 +16,7 @@ def optimize_route(
     x_end: float,
     y_end: float,
     dist_min: float = 10,
-    step_time: float = 20,
+    time_max: float = 2,
     angle_amplitude: float = 0.25,
     num_angles: int = 50,
     vel: float = 5,
@@ -33,14 +33,13 @@ def optimize_route(
     # t_init = tf.constant(0)
     # solution_times = tfp.math.ode.ChosenBySolver(tf.constant(step_time))
 
-    t = np.linspace(0, 2, step_time)
+    t = np.linspace(0, time_max, 20)
 
-    steps = []
     # solver = tfp.math.ode.BDF()
 
     while dist_to_dest((x, y), (x_end, y_end)) > dist_min:
 
-        candidates = []
+        list_routes = []
         thetas = np.linspace(
             cone_center - angle_amplitude / 2,
             cone_center + angle_amplitude / 2,
@@ -52,18 +51,20 @@ def optimize_route(
             p = [x, y, theta]
             # sol = solver.solve(vectorfield.wave, t_init, p, solution_times)
             sol = odeint(vectorfield.wave, p, t, args=(vel,))
-            candidates.append(sol)
+            list_routes.append(sol)
 
-        for pt in candidates:
+        for pt in list_routes:
             plt.plot(pt[:, 0], pt[:, 1], c="gray")
 
         x_old, y_old = x, y
-        idx = min_dist_to_dest(candidates, (x_end, y_end))
-        x, y, theta = candidates[idx][-1]
-        steps.append((x, y, theta))
+        idx_best = min_dist_to_dest(list_routes, (x_end, y_end))
+        x, y, theta = list_routes[idx_best][-1]
         cone_center = theta
 
-        yield candidates, idx
+        # Move best route to first position
+        list_routes.insert(0, list_routes.pop(idx_best))
+
+        yield list_routes
 
         if x == x_old and y == y_old:
             break

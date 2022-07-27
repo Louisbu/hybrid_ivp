@@ -17,7 +17,7 @@ http://localhost:8501
 import inspect
 import sys
 from math import atan2, cos, pi, sin, sqrt
-from time import sleep
+from typing import Optional
 
 import matplotlib.pyplot as plt
 import streamlit as st
@@ -77,7 +77,7 @@ with row1col1:
         "Boat velocity",
         min_value=1.0,
         max_value=10.0,
-        value=3.0,
+        value=5.0,
         step=0.1,
         key="velocity",
     )
@@ -88,8 +88,8 @@ with row1col2:
     y_start = st.number_input(
         "Y", min_value=Y_MIN, max_value=Y_MAX, value=Y_MIN + HEIGHT / 4, key="y_start"
     )
-    step_time = st.slider(
-        "Time step", min_value=1, max_value=50, value=20, step=1, key="time"
+    time_max = st.slider(
+        "Time max.", min_value=0.1, max_value=5.0, value=2.5, step=0.1, key="time"
     )
 
 
@@ -102,7 +102,7 @@ with row1col3:
         "Angle amplitude (degrees)",
         min_value=0,
         max_value=100,
-        value=25,
+        value=60,
         step=1,
         key="angle",
     )
@@ -114,7 +114,7 @@ with row1col4:
         "Y", min_value=Y_MIN, max_value=Y_MAX, value=Y_MIN + 3 * HEIGHT / 4, key="y_end"
     )
     num_angles = st.slider(
-        "Number of angles", min_value=3, max_value=60, value=10, step=1, key="num_angle"
+        "Number of angles", min_value=3, max_value=20, value=6, step=1, key="num_angle"
     )
 
 ###########
@@ -132,23 +132,25 @@ with row2col1:
 ########
 
 
-def plot_preview(x1, y1, x2, y2, angle_amplitude):
-    dx = x2 - x1
-    dy = y2 - y1
-    dist = sqrt(dx**2 + dy**2) / 2
-    angle_rad = atan2(dy, dx)
-    angle_amp_rad = angle_amplitude * pi / 180
-    angle_max = angle_rad + angle_amp_rad / 2
-    x_up = x1 + dist * cos(angle_max)
-    y_up = y1 + dist * sin(angle_max)
-    angle_min = angle_rad - angle_amp_rad / 2
-    x_down = x1 + dist * cos(angle_min)
-    y_down = y1 + dist * sin(angle_min)
-
+def plot_preview(x1, y1, x2, y2, angle_amplitude: Optional[float] = None):
     vectorfield.plot(x_min=X_MIN, x_max=X_MAX, y_min=Y_MIN, y_max=Y_MAX)
+
+    if angle_amplitude:
+        dx = x2 - x1
+        dy = y2 - y1
+        dist = sqrt(dx**2 + dy**2) / 2
+        angle_rad = atan2(dy, dx)
+        angle_amp_rad = angle_amplitude * pi / 180
+        angle_max = angle_rad + angle_amp_rad / 2
+        x_up = x1 + dist * cos(angle_max)
+        y_up = y1 + dist * sin(angle_max)
+        angle_min = angle_rad - angle_amp_rad / 2
+        x_down = x1 + dist * cos(angle_min)
+        y_down = y1 + dist * sin(angle_min)
+        plt.plot([x1, x_up], [y1, y_up], "g--", alpha=0.4)
+        plt.plot([x1, x_down], [y1, y_down], "g--", alpha=0.4)
+
     plt.plot([x1, x2], [y1, y2], "r--", alpha=0.8)
-    plt.plot([x1, x_up], [y1, y_up], "g--", alpha=0.4)
-    plt.plot([x1, x_down], [y1, y_down], "g--", alpha=0.4)
     plt.scatter(x1, y1, c="g")
     plt.scatter(x2, y2, c="r")
     plt.xlim([X_MIN, X_MAX])
@@ -161,47 +163,45 @@ plot = st.pyplot(fig=fig)
 
 if any([x_start, y_start, x_end, y_end, angle]):
     fig = plt.figure()
-    plot_preview(x_start, y_start, x_end, y_end, angle)
+    plot_preview(x_start, y_start, x_end, y_end, angle_amplitude=angle)
     plot.pyplot(fig=fig)
-    sleep(0.2)
 
 #######
 # Run #
 #######
 
 if do_run:
-    list_x, list_y = [
-        x_start,
-    ], [y_start]
-    for candidates, idx_best in optimize_route(
+    list_x = [x_start]
+    list_y = [y_start]
+    for list_routes in optimize_route(
         vectorfield,
         x_start,
         y_start,
         x_end,
         y_end,
-        step_time=step_time,
-        angle_amplitude=angle,
+        time_max=time_max,
+        angle_amplitude=angle * pi / 180,
         num_angles=num_angles,
         vel=vel,
     ):
         fig = plt.figure()
-        for idx, candidate in enumerate(candidates):
-            if idx == idx_best:
+        for idx, route in enumerate(list_routes):
+            if idx == 0:
                 color = "green"
-                list_x.extend(candidate[:, 0])
-                list_y.extend(candidate[:, 1])
-                x, y, _ = candidate[-1]
+                list_x.extend(route[:, 0])
+                list_y.extend(route[:, 1])
+                x, y, _ = route[-1]
             else:
                 color = "grey"
             plt.plot(
-                candidate[:, 0],
-                candidate[:, 1],
+                route[:, 0],
+                route[:, 1],
                 color=color,
-                linestyle=":",
+                linestyle="-",
                 alpha=0.4,
             )
         plt.plot(list_x, list_y, color="green", linestyle="--", alpha=0.6)
-        plot_preview(x, y, x_end, y_end, angle)
+        plot_preview(x, y, x_end, y_end)
         plot.pyplot(fig=fig)
 
 ###########
