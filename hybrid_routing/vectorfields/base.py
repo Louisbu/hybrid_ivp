@@ -35,7 +35,6 @@ class Vectorfield(ABC):
         vector_field = self.get_current(x, y)
         dxdt = vel * jnp.cos(theta) + vector_field[0]
         dydt = vel * jnp.sin(theta) + vector_field[1]
-        # dthetadt = 0.01 * (-jnp.sin(theta) ** 2 - jnp.cos(theta) ** 2)
         dthetadt = (
             self.dvdx(x, y) * jnp.sin(theta) ** 2
             + jnp.sin(theta) * jnp.cos(theta) * (self.dudx(x, y) - self.dvdy(x, y))
@@ -50,7 +49,7 @@ class Vectorfield(ABC):
         x_max: float = 125,
         y_min: float = 0,
         y_max: float = 125,
-        step: float = 10,
+        step: float = 20,
     ):
         """Plots the vector field
 
