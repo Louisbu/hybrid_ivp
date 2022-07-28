@@ -106,8 +106,8 @@ with row1col3:
     angle = st.slider(
         "Angle amplitude (degrees)",
         min_value=0,
-        max_value=100,
-        value=60,
+        max_value=180,
+        value=90,
         step=1,
         key="angle",
     )
@@ -188,7 +188,7 @@ if do_run:
         time_max=time_max,
         angle_amplitude=angle * pi / 180,
         num_angles=num_angles,
-        dist_min=3,
+        dist_min=0.5,
         vel=vel,
     ):
         # Add the new routes to the list,
