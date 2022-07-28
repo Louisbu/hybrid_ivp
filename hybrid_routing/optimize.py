@@ -15,7 +15,7 @@ def optimize_route(
     y_start: float,
     x_end: float,
     y_end: float,
-    dist_min: float = 10,
+    dist_min: float = 0.5,
     time_max: float = 2,
     angle_amplitude: float = 0.25,
     num_angles: int = 50,
@@ -36,7 +36,7 @@ def optimize_route(
     t = np.linspace(0, time_max, 20)
 
     # solver = tfp.math.ode.BDF()
-
+    optimal_route = []
     while dist_to_dest((x, y), (x_end, y_end)) > dist_min:
 
         list_routes = []

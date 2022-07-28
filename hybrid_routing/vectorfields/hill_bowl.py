@@ -7,7 +7,7 @@ class HillBowl(Vectorfield):
         pass
 
     def get_current(self, x, y):
-        return jnp.asarray([1.0, jnp.sin(x**2 + y**2)])
+        return jnp.asarray([x / x, jnp.sin(x**2 + y**2)])
 
     def wave(self, p, t, vel=jnp.float16(1)):
         x, y, theta = p
