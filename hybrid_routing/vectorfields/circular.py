@@ -19,4 +19,4 @@ class Circular(Vectorfield):
         return 1
 
     def get_current(self, x, y):
-        return jnp.asarray([1 * (y + 1), 1 * (-x - 3)])
+        return jnp.asarray([0.1 * (y + 1), 0.1 * (-x - 3)])

@@ -14,16 +14,17 @@ The you can access the web in your PC by going to:
 http://localhost:8501
 """
 
+import enum
 import inspect
 import sys
 from math import atan2, cos, pi, sin, sqrt
 from typing import Optional
-
+import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import streamlit as st
 from PIL import Image
 
-from hybrid_routing.optimize import optimize_route
+from hybrid_routing.optimize import optimize_route, dnj_optimize
 from hybrid_routing.vectorfields import *
 from hybrid_routing.vectorfields.base import Vectorfield
 
@@ -106,8 +107,8 @@ with row1col3:
     angle = st.slider(
         "Angle amplitude (degrees)",
         min_value=0,
-        max_value=100,
-        value=60,
+        max_value=180,
+        value=120,
         step=1,
         key="angle",
     )
@@ -119,7 +120,7 @@ with row1col4:
         "Y", min_value=Y_MIN, max_value=Y_MAX, value=Y_MIN + 3 * HEIGHT / 4, key="y_end"
     )
     num_angles = st.slider(
-        "Number of angles", min_value=3, max_value=20, value=6, step=1, key="num_angle"
+        "Number of angles", min_value=3, max_value=40, value=6, step=1, key="num_angle"
     )
 
 ###########
@@ -179,6 +180,7 @@ if do_run:
     list_x = [x_start]
     list_y = [y_start]
     list_routes = []
+    pts = jnp.array([0])
     for add_routes in optimize_route(
         vectorfield,
         x_start,
@@ -188,7 +190,7 @@ if do_run:
         time_max=time_max,
         angle_amplitude=angle * pi / 180,
         num_angles=num_angles,
-        dist_min=3,
+        dist_min=3 * vel / 4,
         vel=vel,
     ):
         # Add the new routes to the list,
@@ -211,6 +213,14 @@ if do_run:
                 alpha=0.4,
             )
         plt.plot(list_x, list_y, color="green", linestyle="--", alpha=0.6)
+
+        for idx, route in enumerate(list_routes):
+            if idx == 0:
+                pts = jnp.append(pts, route)
+        pts = dnj_optimize(pts, vectorfield)
+        print(pts)
+        # a, b, c = zip(*pts)
+        # plt.plot(a, b)
         plot_preview(x, y, x_end, y_end)
         plot.pyplot(fig=fig)
 

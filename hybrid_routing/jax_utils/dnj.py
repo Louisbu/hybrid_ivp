@@ -1,19 +1,20 @@
 import jax.numpy as jnp
-from hybrid_routing.jax_utils.benchmark import background_vector_field
+
 from jax import grad, jacfwd, jacrev, jit
 
+from hybrid_routing.vectorfields.base import Vectorfield
 
-def cost_function(x, xp):
 
-    w = background_vector_field(x[0], x[1])
+def cost_function(x, xp, vectorfield):
+    w = vectorfield(x[0], x[1])
     cost = 0.5 * ((xp[0] - w[0]) ** 2 + (xp[1] - w[1]) ** 2)
     return cost
 
 
-def discretized_cost_function(q0, q1, h):
-    L1 = cost_function(q0, (q1 - q0) / h)
-    L2 = cost_function(q1, 1 / h * (q1 - q0))
-    L_d = h / 2 * (L1 + L2)
+def discretized_cost_function(q0, q1, h, vectorfield):
+    L1 = cost_function(q0, (q1 - q0) / h, vectorfield)
+    L2 = cost_function(q1, 1 / h * (q1 - q0), vectorfield)
+    L_d = h / 2 * (L1**2 + L2**2)
     return L_d
 
 
@@ -27,11 +28,11 @@ D11Ld = jit(hessian(discretized_cost_function, argnums=0))
 D22Ld = jit(hessian(discretized_cost_function, argnums=1))
 
 
-def optimize_distance(pts, T, N, n):
+def optimize_distance(pts, T, N, n, vectorfield: Vectorfield):
     damping = 0.9  # ~1
 
     h = T / (N - 1)
-
+    w = vectorfield.get_current
     # Implementar el método para la trayectoria.
     x = jnp.array(pts)
     A = []
@@ -44,8 +45,8 @@ def optimize_distance(pts, T, N, n):
 
             qkp1 = jnp.array(x[l + 1])
 
-            b = -D2Ld(qkm1, qk, h) - D1Ld(qk, qkp1, h)
-            a = D22Ld(qkm1, qk, h) + D11Ld(qk, qkp1, h)
+            b = -D2Ld(qkm1, qk, h, w) - D1Ld(qk, qkp1, h, w)
+            a = D22Ld(qkm1, qk, h, w) + D11Ld(qk, qkp1, h, w)
 
             Q = jnp.linalg.solve(a, b)
 

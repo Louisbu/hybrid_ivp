@@ -8,6 +8,16 @@ from scipy.integrate import odeint
 from hybrid_routing.tf_utils.zivp import dist_to_dest, min_dist_to_dest
 from hybrid_routing.vectorfields.base import Vectorfield
 
+from hybrid_routing.jax_utils.dnj import optimize_distance
+
+
+def dnj_optimize(pts, vectorfield):
+    N = len(pts)
+    n = 50
+    T = np.round(N / 20)
+    smooth_pts = optimize_distance(pts, T, N, n, vectorfield)
+    return smooth_pts
+
 
 def optimize_route(
     vectorfield: Vectorfield,
@@ -63,7 +73,6 @@ def optimize_route(
 
         # Move best route to first position
         list_routes.insert(0, list_routes.pop(idx_best))
-
         yield list_routes
 
         if x == x_old and y == y_old:
