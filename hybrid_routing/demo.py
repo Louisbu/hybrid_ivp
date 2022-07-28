@@ -61,8 +61,8 @@ vectorfield: Vectorfield = dict_vectorfields[vectorfield_name]()
 # Coordinates #
 ###############
 
-X_MIN, X_MAX = -40.0, 130.0
-Y_MIN, Y_MAX = -40.0, 130.0
+X_MIN, X_MAX = -10.0, 20.0
+Y_MIN, Y_MAX = -10.0, 20.0
 WIDTH = X_MAX - X_MIN
 HEIGHT = Y_MAX - Y_MIN
 
@@ -89,7 +89,12 @@ with row1col2:
         "Y", min_value=Y_MIN, max_value=Y_MAX, value=Y_MIN + HEIGHT / 4, key="y_start"
     )
     time_max = st.slider(
-        "Time max.", min_value=0.1, max_value=5.0, value=2.5, step=0.1, key="time"
+        "Time between decisions",
+        min_value=0.1,
+        max_value=5.0,
+        value=1.0,
+        step=0.1,
+        key="time",
     )
 
 
@@ -173,7 +178,8 @@ if any([x_start, y_start, x_end, y_end, angle]):
 if do_run:
     list_x = [x_start]
     list_y = [y_start]
-    for list_routes in optimize_route(
+    list_routes = []
+    for add_routes in optimize_route(
         vectorfield,
         x_start,
         y_start,
@@ -182,8 +188,12 @@ if do_run:
         time_max=time_max,
         angle_amplitude=angle * pi / 180,
         num_angles=num_angles,
+        dist_min=3,
         vel=vel,
     ):
+        # Add the new routes to the list,
+        # keeping the chosen one as first
+        list_routes = add_routes + list_routes
         fig = plt.figure()
         for idx, route in enumerate(list_routes):
             if idx == 0:
