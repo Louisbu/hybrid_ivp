@@ -1,17 +1,22 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import tensorflow as tf
-import tensorflow_probability as tfp
 
-from hybrid_routing.tf_utils.zivp import dist_to_dest, min_dist_to_dest, wave
+# import tensorflow as tf
+# import tensorflow_probability as tfp
+from scipy.integrate import odeint
+
+from hybrid_routing.tf_utils.zivp import dist_to_dest, min_dist_to_dest
+from hybrid_routing.vectorfields.base import Vectorfield
 
 
 def optimize_route(
+    vectorfield: Vectorfield,
     x_start: float,
     y_start: float,
     x_end: float,
     y_end: float,
-    step_time: float = 20,
+    dist_min: float = 10,
+    time_max: float = 2,
     angle_amplitude: float = 0.25,
     num_angles: int = 50,
     vel: float = 5,
@@ -25,15 +30,16 @@ def optimize_route(
     x = x_start
     y = y_start
 
-    t = tf.constant(np.linspace(0, 2, step_time))
-    p = tf.constant([x, y, theta])
+    # t_init = tf.constant(0)
+    # solution_times = tfp.math.ode.ChosenBySolver(tf.constant(step_time))
 
-    steps = []
-    solver = tfp.math.ode.BDF()
+    t = np.linspace(0, time_max, 20)
 
-    while dist_to_dest((x, y), (x_end, y_end)) > 3:
+    # solver = tfp.math.ode.BDF()
 
-        candidates = []
+    while dist_to_dest((x, y), (x_end, y_end)) > dist_min:
+
+        list_routes = []
         thetas = np.linspace(
             cone_center - angle_amplitude / 2,
             cone_center + angle_amplitude / 2,
@@ -41,18 +47,24 @@ def optimize_route(
         )
 
         for theta in thetas:
-            sol = solver.solve(wave, t[0], p, t[1:])
-            candidates.append(sol[-1])
+            # p = tf.constant([x, y, theta])
+            p = [x, y, theta]
+            # sol = solver.solve(vectorfield.wave, t_init, p, solution_times)
+            sol = odeint(vectorfield.wave, p, t, args=(vel,))
+            list_routes.append(sol)
 
-        for pt in candidates:
-            plt.scatter(pt[0], pt[1], s=10, c="gray")
+        for pt in list_routes:
+            plt.plot(pt[:, 0], pt[:, 1], c="gray")
 
         x_old, y_old = x, y
-        x, y, theta = min_dist_to_dest(candidates, (x_end, y_end))
-        steps.append((x, y, theta))
+        idx_best = min_dist_to_dest(list_routes, (x_end, y_end))
+        x, y, theta = list_routes[idx_best][-1]
         cone_center = theta
 
-        yield (x, y, theta)
+        # Move best route to first position
+        list_routes.insert(0, list_routes.pop(idx_best))
+
+        yield list_routes
 
         if x == x_old and y == y_old:
             break

@@ -1,5 +1,8 @@
 from abc import ABC, abstractmethod
+
 import jax.numpy as jnp
+import matplotlib.pyplot as plt
+import numpy as np
 from jax import jacfwd, jacrev, jit
 
 
@@ -40,3 +43,32 @@ class Vectorfield(ABC):
         )
 
         return [dxdt, dydt, dthetadt]
+
+    def plot(
+        self,
+        x_min: float = 0,
+        x_max: float = 125,
+        y_min: float = 0,
+        y_max: float = 125,
+        step: float = 10,
+    ):
+        """Plots the vector field
+
+        Parameters
+        ----------
+        x_min : float, optional
+            Left limit of X axes, by default 0
+        x_max : float, optional
+            Right limit of X axes, by default 125
+        y_min : float, optional
+            Bottom limit of Y axes, by default 0
+        y_max : float, optional
+            Up limit of Y axes, by default 125
+        step : float, optional
+            Distance between points to plot, by default 10
+        """
+        x, y = np.meshgrid(
+            np.linspace(x_min, x_max, step), np.linspace(y_min, y_max, step)
+        )
+        u, v = self.get_current(x, y)
+        plt.quiver(x, y, u, v)
