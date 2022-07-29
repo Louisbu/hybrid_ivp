@@ -19,4 +19,4 @@ class ConstantCurrent(Vectorfield):
         return 0
 
     def get_current(self, x, y):
-        return jnp.asarray([0.3, -0.3])
+        return jnp.asarray([0.2, -0.2])

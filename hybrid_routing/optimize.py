@@ -39,7 +39,7 @@ def optimize_route(
 
     # solver = tfp.math.ode.BDF()
 
-    while dist_to_dest((x, y), (x_end, y_end)) > dist_min:
+    while dist_to_dest((x, y), (x_end, y_end)) > vel / 2:
 
         list_routes = []
         thetas = np.linspace(
