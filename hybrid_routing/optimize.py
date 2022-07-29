@@ -1,20 +1,9 @@
-import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.integrate import odeint
 
-from hybrid_routing.jax_utils.dnj import DNJ
 from hybrid_routing.tf_utils.zivp import dist_to_dest, min_dist_to_dest
 from hybrid_routing.vectorfields.base import Vectorfield
-
-
-def dnj_optimize(
-    pts: jnp.array, t_total: float, dnj: DNJ, num_iter: int = 50
-) -> jnp.array:
-    pts_smooth = pts
-    for iteration in range(num_iter):
-        pts_smooth = dnj.optimize_distance(pts_smooth, t_total)
-    return pts_smooth
 
 
 def optimize_route(

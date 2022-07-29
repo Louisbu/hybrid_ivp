@@ -25,7 +25,7 @@ import streamlit as st
 from PIL import Image
 
 from hybrid_routing.jax_utils.dnj import DNJ
-from hybrid_routing.optimize import dnj_optimize, optimize_route
+from hybrid_routing.optimize import optimize_route
 from hybrid_routing.vectorfields import *
 from hybrid_routing.vectorfields.base import Vectorfield
 
@@ -218,11 +218,15 @@ if do_run:
                 alpha=0.4,
             )
 
-        t_total += time_max
-
         route = list_routes[0]
         pts = jnp.concatenate([pts, jnp.array(route[:, :2])])
-        pts = dnj_optimize(pts, t_total, dnj, num_iter=40)
+
+        plt.plot(list_x, list_y, color="yellow", linestyle="--", alpha=0.6)
+        plot_preview(x, y, x_end, y_end)
+        plot.pyplot(fig=fig)
+
+        t_total += time_max
+        pts = dnj.optimize_distance(pts, t_total, num_iter=50)
         a, b = zip(*pts)
 
         plt.plot(list_x, list_y, color="yellow", linestyle="--", alpha=0.6)
