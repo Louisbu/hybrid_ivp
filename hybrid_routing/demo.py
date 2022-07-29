@@ -23,8 +23,9 @@ import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import streamlit as st
 from PIL import Image
+from hybrid_routing import vectorfields
 
-from hybrid_routing.optimize import optimize_route, dnj_optimize
+import hybrid_routing.optimize
 from hybrid_routing.vectorfields import *
 from hybrid_routing.vectorfields.base import Vectorfield
 
@@ -57,6 +58,11 @@ dict_vectorfields = dict(
 
 vectorfield_name = st.selectbox("Vector field:", sorted(dict_vectorfields.keys()))
 vectorfield: Vectorfield = dict_vectorfields[vectorfield_name]()
+
+
+def get_vectorfield() -> Vectorfield:
+    return vectorfield
+
 
 ###############
 # Coordinates #
@@ -180,8 +186,8 @@ if do_run:
     list_x = [x_start]
     list_y = [y_start]
     list_routes = []
-    pts = jnp.array([0])
-    for add_routes in optimize_route(
+    pts = []
+    for add_routes in hybrid_routing.optimize.optimize_route(
         vectorfield,
         x_start,
         y_start,
@@ -214,11 +220,11 @@ if do_run:
             )
         plt.plot(list_x, list_y, color="green", linestyle="--", alpha=0.6)
 
-        for idx, route in enumerate(list_routes):
-            if idx == 0:
-                pts = jnp.append(pts, route)
-        pts = dnj_optimize(pts, vectorfield)
-        print(pts)
+        route = list_routes[0]
+        pts.extend(route)
+        # print(pts)
+        aaaaa = hybrid_routing.optimize.dnj_optimize(pts)
+        # print(aaaaa)
         # a, b, c = zip(*pts)
         # plt.plot(a, b)
         plot_preview(x, y, x_end, y_end)
