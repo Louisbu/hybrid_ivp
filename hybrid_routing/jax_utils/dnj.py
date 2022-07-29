@@ -41,7 +41,7 @@ class DNJ:
     def __eq__(self, other):
         return isinstance(other, DNJ)
 
-    @partial(jit, static_argnums=(0, 2, 3, 4))
+    @partial(jit, static_argnums=(0, 2, 3))
     def optimize_distance(
         self,
         pts: jnp.array,
