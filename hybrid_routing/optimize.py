@@ -19,6 +19,7 @@ def optimize_route(
     y_end: float,
     dist_min: float = 10,
     time_max: float = 2,
+    time_step: float = 0.1,
     angle_amplitude: float = 0.25,
     num_angles: int = 50,
     vel: float = 5,
@@ -34,8 +35,7 @@ def optimize_route(
 
     # t_init = tf.constant(0)
     # solution_times = tfp.math.ode.ChosenBySolver(tf.constant(step_time))
-
-    t = np.linspace(0, time_max, 20)
+    t = np.arange(0, time_max, time_step)
 
     # solver = tfp.math.ode.BDF()
 
@@ -104,7 +104,7 @@ def main():
     print("Number of points:", pts.shape[0])
     print("Start iteration...")
     for iteration in range(50):
-        pts = dnj.optimize_distance(pts, t_total)
+        pts = dnj.optimize_distance(pts)
         print("Iteration:", iteration)
 
     print("Number of points:", pts.shape[0])
