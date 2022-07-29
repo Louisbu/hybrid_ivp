@@ -59,9 +59,6 @@ dict_vectorfields = dict(
 vectorfield_name = st.selectbox("Vector field:", sorted(dict_vectorfields.keys()))
 vectorfield: Vectorfield = dict_vectorfields[vectorfield_name]()
 
-dnj = DNJ(vectorfield=vectorfield)
-
-
 ###############
 # Coordinates #
 ###############
@@ -126,6 +123,11 @@ with row1col4:
     num_angles = st.slider(
         "Number of angles", min_value=3, max_value=40, value=6, step=1, key="num_angle"
     )
+
+
+# DNJ
+time_step = time_max / 20
+dnj = DNJ(vectorfield=vectorfield, time_step=time_step)
 
 ###########
 # Buttons #
@@ -193,6 +195,7 @@ if do_run:
         x_end,
         y_end,
         time_max=time_max,
+        time_step=time_step,
         angle_amplitude=angle * pi / 180,
         num_angles=num_angles,
         dist_min=3 * vel / 4,
@@ -223,7 +226,7 @@ if do_run:
 
         t_total += time_max
         for iteration in range(50):
-            pts = dnj.optimize_distance(pts, t_total)
+            pts = dnj.optimize_distance(pts)
 
         plt.plot(list_x, list_y, color="yellow", linestyle="--", alpha=0.6)
         plt.plot(pts[:, 0], pts[:, 1], color="green", linestyle="--", alpha=0.7)
