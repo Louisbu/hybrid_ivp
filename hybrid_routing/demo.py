@@ -14,18 +14,18 @@ The you can access the web in your PC by going to:
 http://localhost:8501
 """
 
-import enum
 import inspect
 import sys
 from math import atan2, cos, pi, sin, sqrt
 from typing import Optional
+
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import streamlit as st
 from PIL import Image
-from hybrid_routing import vectorfields
 
-import hybrid_routing.optimize
+from hybrid_routing.jax_utils.dnj import DNJ
+from hybrid_routing.optimize import dnj_optimize, optimize_route
 from hybrid_routing.vectorfields import *
 from hybrid_routing.vectorfields.base import Vectorfield
 
@@ -59,9 +59,7 @@ dict_vectorfields = dict(
 vectorfield_name = st.selectbox("Vector field:", sorted(dict_vectorfields.keys()))
 vectorfield: Vectorfield = dict_vectorfields[vectorfield_name]()
 
-
-def get_vectorfield() -> Vectorfield:
-    return vectorfield
+dnj = DNJ(vectorfield=vectorfield)
 
 
 ###############
@@ -186,8 +184,9 @@ if do_run:
     list_x = [x_start]
     list_y = [y_start]
     list_routes = []
-    pts = []
-    for add_routes in hybrid_routing.optimize.optimize_route(
+    pts = jnp.array([[x_start, y_start]])
+    t_total = 0
+    for add_routes in optimize_route(
         vectorfield,
         x_start,
         y_start,
@@ -205,7 +204,7 @@ if do_run:
         fig = plt.figure()
         for idx, route in enumerate(list_routes):
             if idx == 0:
-                color = "green"
+                color = "red"
                 list_x.extend(route[:, 0])
                 list_y.extend(route[:, 1])
                 x, y, _ = route[-1]
@@ -218,15 +217,16 @@ if do_run:
                 linestyle="-",
                 alpha=0.4,
             )
-        plt.plot(list_x, list_y, color="green", linestyle="--", alpha=0.6)
+
+        t_total += time_max
 
         route = list_routes[0]
-        pts.extend(route)
-        # print(pts)
-        aaaaa = hybrid_routing.optimize.dnj_optimize(pts)
-        # print(aaaaa)
-        # a, b, c = zip(*pts)
-        # plt.plot(a, b)
+        pts = jnp.concatenate([pts, jnp.array(route[:, :2])])
+        pts = dnj_optimize(pts, t_total, dnj, num_iter=40)
+        a, b = zip(*pts)
+
+        plt.plot(list_x, list_y, color="yellow", linestyle="--", alpha=0.6)
+        plt.plot(a, b, color="green", linestyle="--", alpha=0.7)
         plot_preview(x, y, x_end, y_end)
         plot.pyplot(fig=fig)
 
