@@ -1,23 +1,20 @@
+import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import numpy as np
-
-# import tensorflow as tf
-# import tensorflow_probability as tfp
 from scipy.integrate import odeint
-from hybrid_routing import vectorfields
 
+from hybrid_routing.jax_utils.dnj import DNJ
 from hybrid_routing.tf_utils.zivp import dist_to_dest, min_dist_to_dest
 from hybrid_routing.vectorfields.base import Vectorfield
 
-from hybrid_routing.jax_utils.dnj import optimize_distance
 
-
-def dnj_optimize(pts):
-    N = len(pts)
-    n = 50
-    T = np.round(N / 20)
-    smooth_pts = optimize_distance(pts, T, N, n)
-    return smooth_pts
+def dnj_optimize(
+    pts: jnp.array, t_total: float, dnj: DNJ, num_iter: int = 50
+) -> jnp.array:
+    pts_smooth = pts
+    for iteration in range(num_iter):
+        pts_smooth = dnj.optimize_distance(pts_smooth, t_total)
+    return pts_smooth
 
 
 def optimize_route(
