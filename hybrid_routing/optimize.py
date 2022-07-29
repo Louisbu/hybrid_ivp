@@ -1,9 +1,14 @@
+from math import pi
+
+import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.integrate import odeint
 
+from hybrid_routing.jax_utils.dnj import DNJ
 from hybrid_routing.tf_utils.zivp import dist_to_dest, min_dist_to_dest
 from hybrid_routing.vectorfields.base import Vectorfield
+from hybrid_routing.vectorfields.constant_current import ConstantCurrent
 
 
 def optimize_route(
@@ -64,3 +69,46 @@ def optimize_route(
 
         if x == x_old and y == y_old:
             break
+
+
+def main():
+    vectorfield = ConstantCurrent()
+    dnj = DNJ(vectorfield)
+    x_start, y_start = 0, 0
+    x_end, y_end = 6, 6
+    time_max = 2
+    angle_amplitude = pi / 2
+    num_angles = 10
+    vel = 5
+
+    pts = jnp.array([[x_start, y_start]])
+    t_total = 0
+
+    for list_routes in optimize_route(
+        vectorfield,
+        x_start,
+        y_start,
+        x_end,
+        y_end,
+        time_max=time_max,
+        angle_amplitude=angle_amplitude,
+        num_angles=num_angles,
+        dist_min=3 * vel / 4,
+        vel=vel,
+    ):
+        print("Scipy done!")
+        route = list_routes[0]
+        pts = jnp.concatenate([pts, jnp.array(route[:, :2])])
+
+        t_total += time_max
+    print("Number of points:", pts.shape[0])
+    print("Start iteration...")
+    for iteration in range(50):
+        pts = dnj.optimize_distance(pts, t_total)
+        print("Iteration:", iteration)
+
+    print("Number of points:", pts.shape[0])
+
+
+if __name__ == "__main__":
+    main()
