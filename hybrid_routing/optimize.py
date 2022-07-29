@@ -105,9 +105,10 @@ def main():
         t_total += time_max
     print("Number of points:", pts.shape[0])
     print("Start iteration...")
-    for iteration in range(50):
+    for iteration in range(200):
         pts = dnj.optimize_distance(pts)
-        print("Iteration:", iteration)
+        if iteration % 10 == 0:
+            print("Iteration:", iteration)
 
     print("Number of points:", pts.shape[0])
 
