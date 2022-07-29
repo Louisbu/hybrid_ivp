@@ -1,71 +1,89 @@
+from functools import partial
+from typing import Callable
+
 import jax.numpy as jnp
-
-from jax import grad, jacfwd, jacrev, jit
-
 from hybrid_routing.vectorfields.base import Vectorfield
-import hybrid_routing.demo
+from hybrid_routing.vectorfields.constant_current import ConstantCurrent
+from jax import grad, jacfwd, jacrev, jit
+from pyparsing import Iterable
 
 
-def cost_function(x, xp):
-    wave = hybrid_routing.demo.get_vectorfield()
-    w = wave.get_current(x[0], x[1])
-    cost = 0.5 * ((xp[0] - w[0]) ** 2 + (xp[1] - w[1]) ** 2)
-    return cost
-
-
-def discretized_cost_function(q0, q1, h):
-    L1 = cost_function(q0, (q1 - q0) / h)
-    L2 = cost_function(q1, 1 / h * (q1 - q0))
-    L_d = h / 2 * (L1**2 + L2**2)
-    return L_d
-
-
-def hessian(f, argnums=0):
+def hessian(f: Callable, argnums: int = 0):
     return jacfwd(jacrev(f, argnums=argnums), argnums=argnums)
 
 
-D1Ld = jit(grad(discretized_cost_function, argnums=0))
-D2Ld = jit(grad(discretized_cost_function, argnums=1))
-D11Ld = jit(hessian(discretized_cost_function, argnums=0))
-D22Ld = jit(hessian(discretized_cost_function, argnums=1))
+class DNJ:
+    def __init__(self, vectorfield: Vectorfield) -> None:
+        def cost_function(x: jnp.array, xp: jnp.array) -> Iterable[float]:
+            w = vectorfield.get_current(x[0], x[1])
+            cost = 0.5 * ((xp[0] - w[0]) ** 2 + (xp[1] - w[1]) ** 2)
+            return cost
 
+        def discretized_cost_function(
+            q0: jnp.array, q1: jnp.array, h: float
+        ) -> Iterable[float]:
+            L1 = cost_function(q0, (q1 - q0) / h)
+            L2 = cost_function(q1, 1 / h * (q1 - q0))
+            L_d = h / 2 * (L1**2 + L2**2)
+            return L_d
 
-def optimize_distance(pts, T, N, n):
-    damping = 0.9  # ~1
-    # print(pts)
-    h = T / (N - 1)
-    # Implementar el método para la trayectoria.
-    x = jnp.asarray(pts)
-    print(x)
-    A = []
-    A.append(x[0])
-    for k in range(n):
-        for l in range(1, N - 1):
-            qkm1 = jnp.array(x[l - 1])
+        self.cost_function = cost_function
+        self.discretized_cost_function = discretized_cost_function
 
-            qk = jnp.array(x[l])
+        self.D1Ld = jit(grad(discretized_cost_function, argnums=0))
+        self.D2Ld = jit(grad(discretized_cost_function, argnums=1))
+        self.D11Ld = jit(hessian(discretized_cost_function, argnums=0))
+        self.D22Ld = jit(hessian(discretized_cost_function, argnums=1))
 
-            qkp1 = jnp.array(x[l + 1])
+    def __hash__(self):
+        return hash(())
 
-            b = -D2Ld(qkm1, qk, h) - D1Ld(qk, qkp1, h)
-            a = D22Ld(qkm1, qk, h) + D11Ld(qk, qkp1, h)
+    def __eq__(self, other):
+        return isinstance(other, DNJ)
 
-            Q = jnp.linalg.solve(a, b)
+    @partial(jit, static_argnums=(0, 2, 3, 4, 5))
+    def optimize_distance(
+        self,
+        pts: jnp.array,
+        t_total: float,
+        num_points: int,
+        n_iter: int,
+        damping: float = 0.9,
+    ) -> jnp.array:
+        h = t_total / (num_points - 1)
+        # Implement method for the trajectory
+        x = jnp.asarray(pts)
+        x_new = [x[0]]
+        for iteration in range(n_iter):
+            for idx in range(1, num_points - 1):
+                qkm1 = x[idx - 1]
+                qk = x[idx]
+                qkp1 = x[idx + 1]
 
-            A.append(damping * Q + x[l])
-        x = jnp.array(A)
-        A = [x[0]]
-    return x
+                b = -self.D2Ld(qkm1, qk, h) - self.D1Ld(qk, qkp1, h)
+                a = self.D22Ld(qkm1, qk, h) + self.D11Ld(qk, qkp1, h)
+
+                Q = jnp.linalg.solve(a, b)
+
+                x_new.append(damping * Q + qk)
+            x = jnp.array(x_new)
+            x_new = [x[0]]
+        return x
 
 
 def main():
-    x0 = jnp.array([0.0, 0.0])
-    xN = jnp.array([6.0, 5.0])
-    T = 30
-    N = 50
-    n = 20
-    x = optimize_distance(x0, xN, T, N, n)
-    print([x, xN])
+    x0 = jnp.array([[0.0, 0.0], [1.0, 1.0], [2.0, 2.0], [3.0, 3.0]])
+    t_total = 30
+    num_points = 10
+    n_iter = 10
+    dnj = DNJ(vectorfield=ConstantCurrent())
+
+    print("Cost\n", dnj.cost_function(x0, x0))
+    print("\nDiscretize\n", dnj.discretized_cost_function(x0, x0, 0.5))
+    print("\nDerivative\n", dnj.D2Ld(x0[0], x0[0], 0.5))
+
+    x = dnj.optimize_distance(x0, t_total, num_points, n_iter)
+    print(x)
 
 
 if __name__ == "__main__":
