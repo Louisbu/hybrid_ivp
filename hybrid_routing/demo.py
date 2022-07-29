@@ -19,10 +19,12 @@ import sys
 from math import atan2, cos, pi, sin, sqrt
 from typing import Optional
 
+import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import streamlit as st
 from PIL import Image
 
+from hybrid_routing.jax_utils.dnj import DNJ
 from hybrid_routing.optimize import optimize_route
 from hybrid_routing.vectorfields import *
 from hybrid_routing.vectorfields.base import Vectorfield
@@ -107,7 +109,7 @@ with row1col3:
         "Angle amplitude (degrees)",
         min_value=0,
         max_value=180,
-        value=90,
+        value=120,
         step=1,
         key="angle",
     )
@@ -119,8 +121,13 @@ with row1col4:
         "Y", min_value=Y_MIN, max_value=Y_MAX, value=Y_MIN + 3 * HEIGHT / 4, key="y_end"
     )
     num_angles = st.slider(
-        "Number of angles", min_value=3, max_value=20, value=6, step=1, key="num_angle"
+        "Number of angles", min_value=3, max_value=40, value=6, step=1, key="num_angle"
     )
+
+
+# DNJ
+time_step = time_max / 20
+dnj = DNJ(vectorfield=vectorfield, time_step=time_step)
 
 ###########
 # Buttons #
@@ -170,6 +177,7 @@ if any([x_start, y_start, x_end, y_end, angle]):
     fig = plt.figure()
     plot_preview(x_start, y_start, x_end, y_end, angle_amplitude=angle)
     plot.pyplot(fig=fig)
+    plt.close(fig)
 
 #######
 # Run #
@@ -179,6 +187,8 @@ if do_run:
     list_x = [x_start]
     list_y = [y_start]
     list_routes = []
+    pts = jnp.array([[x_start, y_start]])
+    t_total = 0
     for add_routes in optimize_route(
         vectorfield,
         x_start,
@@ -186,9 +196,10 @@ if do_run:
         x_end,
         y_end,
         time_max=time_max,
+        time_step=time_step,
         angle_amplitude=angle * pi / 180,
         num_angles=num_angles,
-        dist_min=0.5,
+        dist_min=3 * vel / 4,
         vel=vel,
     ):
         # Add the new routes to the list,
@@ -197,10 +208,9 @@ if do_run:
         fig = plt.figure()
         for idx, route in enumerate(list_routes):
             if idx == 0:
-                color = "green"
+                color = "red"
                 list_x.extend(route[:, 0])
                 list_y.extend(route[:, 1])
-                x, y, _ = route[-1]
             else:
                 color = "grey"
             plt.plot(
@@ -210,9 +220,30 @@ if do_run:
                 linestyle="-",
                 alpha=0.4,
             )
-        plt.plot(list_x, list_y, color="green", linestyle="--", alpha=0.6)
-        plot_preview(x, y, x_end, y_end)
+
+        route = list_routes[0]
+        pts = jnp.concatenate([pts, jnp.array(route[:, :2])])
+
+        t_total += time_max
+        for iteration in range(50):
+            pts = dnj.optimize_distance(pts)
+
+        plt.plot(list_x, list_y, color="yellow", linestyle="--", alpha=0.6)
+        plt.plot(pts[:, 0], pts[:, 1], color="green", linestyle="--", alpha=0.7)
+        plot_preview(pts[-1, 0], pts[-1, 1], x_end, y_end)
         plot.pyplot(fig=fig)
+        plt.close(fig)
+
+    # Once optimization finishes, append last point
+    pts = jnp.concatenate([pts, jnp.array([[x_end, y_end]])])
+    fig = plt.figure()
+    for iteration in range(100):
+        pts = dnj.optimize_distance(pts)
+    plt.plot(list_x, list_y, color="yellow", linestyle="--", alpha=0.6)
+    plt.plot(pts[:, 0], pts[:, 1], color="green", linestyle="--", alpha=0.7)
+    plot_preview(pts[-1, 0], pts[-1, 1], x_end, y_end)
+    plot.pyplot(fig=fig)
+    plt.close(fig)
 
 ###########
 # Credits #

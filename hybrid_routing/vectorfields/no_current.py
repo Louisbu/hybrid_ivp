@@ -18,5 +18,5 @@ class NoCurrent(Vectorfield):
     def dudy(self, x, y):
         return 0
 
-    def get_current(self, x, y):
+    def get_current(self, x, y) -> jnp.array:
         return jnp.asarray([0.0, 0.0])
