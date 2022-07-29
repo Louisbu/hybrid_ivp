@@ -78,11 +78,11 @@ def main():
     vectorfield = ConstantCurrent()
     dnj = DNJ(vectorfield)
     x_start, y_start = 0, 0
-    x_end, y_end = 6, 6
+    x_end, y_end = 100, 100
     time_max = 2
     angle_amplitude = pi / 2
     num_angles = 10
-    vel = 5
+    vel = 1
 
     pts = jnp.array([[x_start, y_start]])
     t_total = 0
@@ -96,11 +96,10 @@ def main():
         time_max=time_max,
         angle_amplitude=angle_amplitude,
         num_angles=num_angles,
-        dist_min=3 * vel / 4,
         vel=vel,
     ):
-        print("Scipy done!")
         route = list_routes[0]
+        print("Scipy done! Last point:", route[-1])
         pts = jnp.concatenate([pts, jnp.array(route[:, :2])])
 
         t_total += time_max
