@@ -232,6 +232,7 @@ if do_run:
         plt.plot(pts[:, 0], pts[:, 1], color="green", linestyle="--", alpha=0.7)
         plot_preview(x, y, x_end, y_end)
         plot.pyplot(fig=fig)
+        plt.close(fig)
 
 ###########
 # Credits #
