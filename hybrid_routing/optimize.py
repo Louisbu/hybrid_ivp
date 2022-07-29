@@ -17,7 +17,6 @@ def optimize_route(
     y_start: float,
     x_end: float,
     y_end: float,
-    dist_min: float = 10,
     time_max: float = 2,
     time_step: float = 0.1,
     angle_amplitude: float = 0.25,
@@ -61,7 +60,11 @@ def optimize_route(
         x_old, y_old = x, y
         idx_best = min_dist_to_dest(list_routes, (x_end, y_end))
         x, y, theta = list_routes[idx_best][-1]
-        cone_center = theta
+
+        # Recompute the cone center
+        dx = x_end - x
+        dy = y_end - y
+        cone_center = np.arctan2(dy, dx)
 
         # Move best route to first position
         list_routes.insert(0, list_routes.pop(idx_best))
