@@ -177,6 +177,7 @@ if any([x_start, y_start, x_end, y_end, angle]):
     fig = plt.figure()
     plot_preview(x_start, y_start, x_end, y_end, angle_amplitude=angle)
     plot.pyplot(fig=fig)
+    plt.close(fig)
 
 #######
 # Run #
@@ -210,7 +211,6 @@ if do_run:
                 color = "red"
                 list_x.extend(route[:, 0])
                 list_y.extend(route[:, 1])
-                x, y, _ = route[-1]
             else:
                 color = "grey"
             plt.plot(
@@ -230,9 +230,20 @@ if do_run:
 
         plt.plot(list_x, list_y, color="yellow", linestyle="--", alpha=0.6)
         plt.plot(pts[:, 0], pts[:, 1], color="green", linestyle="--", alpha=0.7)
-        plot_preview(x, y, x_end, y_end)
+        plot_preview(pts[-1, 0], pts[-1, 1], x_end, y_end)
         plot.pyplot(fig=fig)
         plt.close(fig)
+
+    # Once optimization finishes, append last point
+    pts = jnp.concatenate([pts, jnp.array([[x_end, y_end]])])
+    fig = plt.figure()
+    for iteration in range(100):
+        pts = dnj.optimize_distance(pts)
+    plt.plot(list_x, list_y, color="yellow", linestyle="--", alpha=0.6)
+    plt.plot(pts[:, 0], pts[:, 1], color="green", linestyle="--", alpha=0.7)
+    plot_preview(pts[-1, 0], pts[-1, 1], x_end, y_end)
+    plot.pyplot(fig=fig)
+    plt.close(fig)
 
 ###########
 # Credits #
