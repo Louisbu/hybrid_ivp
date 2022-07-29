@@ -144,9 +144,7 @@ with row2col1:
 ########
 
 
-def plot_preview(x1, y1, x2, y2, angle_amplitude: Optional[float] = None):
-    vectorfield.plot(x_min=X_MIN, x_max=X_MAX, y_min=Y_MIN, y_max=Y_MAX)
-
+def plot_start_and_goal(x1, y1, x2, y2, angle_amplitude: Optional[float] = None):
     if angle_amplitude:
         dx = x2 - x1
         dy = y2 - y1
@@ -165,6 +163,10 @@ def plot_preview(x1, y1, x2, y2, angle_amplitude: Optional[float] = None):
     plt.plot([x1, x2], [y1, y2], "r--", alpha=0.8)
     plt.scatter(x1, y1, c="g")
     plt.scatter(x2, y2, c="r")
+
+
+def plot_vectorfield():
+    vectorfield.plot(x_min=X_MIN, x_max=X_MAX, y_min=Y_MIN, y_max=Y_MAX)
     plt.xlim([X_MIN, X_MAX])
     plt.ylim([Y_MIN, Y_MAX])
 
@@ -175,7 +177,8 @@ plot = st.pyplot(fig=fig)
 
 if any([x_start, y_start, x_end, y_end, angle]):
     fig = plt.figure()
-    plot_preview(x_start, y_start, x_end, y_end, angle_amplitude=angle)
+    plot_vectorfield()
+    plot_start_and_goal(x_start, y_start, x_end, y_end, angle_amplitude=angle)
     plot.pyplot(fig=fig)
     plt.close(fig)
 
@@ -199,13 +202,13 @@ if do_run:
         time_step=time_step,
         angle_amplitude=angle * pi / 180,
         num_angles=num_angles,
-        dist_min=3 * vel / 4,
         vel=vel,
     ):
         # Add the new routes to the list,
         # keeping the chosen one as first
         list_routes = add_routes + list_routes
         fig = plt.figure()
+        plot_vectorfield()
         for idx, route in enumerate(list_routes):
             if idx == 0:
                 color = "red"
@@ -228,9 +231,9 @@ if do_run:
         for iteration in range(50):
             pts = dnj.optimize_distance(pts)
 
-        plt.plot(list_x, list_y, color="yellow", linestyle="--", alpha=0.6)
+        plt.plot(list_x, list_y, color="orange", linestyle="--", alpha=0.6)
         plt.plot(pts[:, 0], pts[:, 1], color="green", linestyle="--", alpha=0.7)
-        plot_preview(pts[-1, 0], pts[-1, 1], x_end, y_end)
+        plot_start_and_goal(pts[-1, 0], pts[-1, 1], x_end, y_end)
         plot.pyplot(fig=fig)
         plt.close(fig)
 
@@ -239,9 +242,11 @@ if do_run:
     fig = plt.figure()
     for iteration in range(100):
         pts = dnj.optimize_distance(pts)
-    plt.plot(list_x, list_y, color="yellow", linestyle="--", alpha=0.6)
+    plot_vectorfield()
+    plt.plot(list_x, list_y, color="orange", linestyle="--", alpha=0.6)
     plt.plot(pts[:, 0], pts[:, 1], color="green", linestyle="--", alpha=0.7)
-    plot_preview(pts[-1, 0], pts[-1, 1], x_end, y_end)
+    plt.xlim([X_MIN, X_MAX])
+    plt.ylim([Y_MIN, Y_MAX])
     plot.pyplot(fig=fig)
     plt.close(fig)
 
