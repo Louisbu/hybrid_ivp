@@ -41,34 +41,30 @@ class DNJ:
     def __eq__(self, other):
         return isinstance(other, DNJ)
 
-    @partial(jit, static_argnums=(0, 2, 3, 4))
+    @partial(jit, static_argnums=(0, 2, 3))
     def optimize_distance(
         self,
         pts: jnp.array,
         t_total: float,
         damping: float = 0.9,
-        num_iter: int = 50,
     ) -> jnp.array:
         num_points = len(pts)
         h = t_total / (num_points - 1)
         # Implement method for the trajectory
-        x = jnp.asarray(pts)
+        x = jnp.copy(pts)
         x_new = jnp.copy(x)
-        for iteration in range(num_iter):
-            for idx in range(1, num_points - 1):
-                qkm1 = x[idx - 1]
-                qk = x[idx]
-                qkp1 = x[idx + 1]
+        for idx in range(1, num_points - 1):
+            qkm1 = x[idx - 1]
+            qk = x[idx]
+            qkp1 = x[idx + 1]
 
-                b = -self.D2Ld(qkm1, qk, h) - self.D1Ld(qk, qkp1, h)
-                a = self.D22Ld(qkm1, qk, h) + self.D11Ld(qk, qkp1, h)
+            b = -self.D2Ld(qkm1, qk, h) - self.D1Ld(qk, qkp1, h)
+            a = self.D22Ld(qkm1, qk, h) + self.D11Ld(qk, qkp1, h)
 
-                Q = jnp.linalg.solve(a, b)
+            Q = jnp.linalg.solve(a, b)
 
-                x_new = x_new.at[idx].set(damping * Q + qk)
-            # Update x
-            x = jnp.copy(x_new)
-        return x
+            x_new = x_new.at[idx].set(damping * Q + qk)
+        return x_new
 
 
 def main():
@@ -80,7 +76,8 @@ def main():
 
     print("Cost\n", dnj.cost_function(x0, x0))
     print("\nDiscretize\n", dnj.discretized_cost_function(x0, x0, 0.5))
-    print("\nDerivative\n", dnj.D2Ld(x0[0], x0[0], 0.5))
+    print(x0)
+    print("\nDerivative\n", dnj.D2Ld(x0, x0, 0.5))
 
     x = dnj.optimize_distance(x0, t_total, num_points, n_iter)
     print(x)

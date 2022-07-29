@@ -221,16 +221,12 @@ if do_run:
         route = list_routes[0]
         pts = jnp.concatenate([pts, jnp.array(route[:, :2])])
 
-        plt.plot(list_x, list_y, color="yellow", linestyle="--", alpha=0.6)
-        plot_preview(x, y, x_end, y_end)
-        plot.pyplot(fig=fig)
-
         t_total += time_max
-        pts = dnj.optimize_distance(pts, t_total, num_iter=50)
-        a, b = zip(*pts)
+        for iteration in range(50):
+            pts = dnj.optimize_distance(pts, t_total)
 
         plt.plot(list_x, list_y, color="yellow", linestyle="--", alpha=0.6)
-        plt.plot(a, b, color="green", linestyle="--", alpha=0.7)
+        plt.plot(pts[:, 0], pts[:, 1], color="green", linestyle="--", alpha=0.7)
         plot_preview(x, y, x_end, y_end)
         plot.pyplot(fig=fig)
 
