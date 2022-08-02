@@ -43,10 +43,13 @@
       </ul>
     </li>
     <li>
-      <a href="#system-structure">System Structure</a>
-    </li>
-    <li>
     <a href="#library">Library</a>
+    <ul>
+        <li><a href="#jax-utils">JAX utils</a></li>
+        <li><a href="#tf-utils">TF utils</a></li>
+        <li><a href="#vector-fields">Vector fields</a></li>
+        <li><a href="#web">Web</a></li>
+      </ul>
     </li>
     <li><a href="#demo">Demo</a></li>
     <li><a href="#contact">Contact</a></li>
@@ -101,9 +104,25 @@ Add abstract dependency to `setup.py`. If neccessary, add version requirements b
 - Update `requirements.txt`: `pip-compile --extra dev > requirements.txt`
 - Update environment: `pip-sync`
 
-## System structure
-
 ## Library
+
+The library is structure as follows.
+
+### JAX Utils
+
+The module [hybrid_routing.jax_utils](./hybrid_routing/jax_utils/) implements all the functions to optimize a route by using JAX.
+
+### TF Utils
+
+The module [hybrid_routing.tf_utils](./hybrid_routing/tf_utils/) implements all the functions to optimize a route by using TensorFlow.
+
+### Vector Fields
+
+The module [hybrid_routing.vectorfields](./hybrid_routing/vectorfields/) contains all the different `Vectorfield` classes used in our study. Each `Vectorfield` implements a synthetic field of sea currents.
+
+### Web
+
+The module [hybrid_routing.web](./hybrid_routing/web/) contains the utils used to deploy our demo. You can learn more about this in our [demo section](#demo).
 
 ## Demo
 
