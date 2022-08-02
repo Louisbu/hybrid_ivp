@@ -120,6 +120,29 @@ The module [hybrid_routing.tf_utils](./hybrid_routing/tf_utils/) implements all 
 
 The module [hybrid_routing.vectorfields](./hybrid_routing/vectorfields/) contains all the different `Vectorfield` classes used in our study. Each `Vectorfield` implements a synthetic field of sea currents.
 
+Sample code to use vectorfields:
+
+```python
+from hybrid_routing.vectorfields import Circular
+
+# Initialize the vectorfield
+vectorfield = Circular()
+
+# Get the current velocity (u, v) at point (x, y)
+# x = longitude, y = latitude
+x, y = 0.5, 0.2
+# u = velocity vector component parallel to longitude
+# v = velocity vector component parallel to latitude
+u, v = vectorfield.get_current(x, y)
+
+# Plot the vectorfield
+vectorfield.plot()
+```
+
+Here is the expected plot output:
+
+![Circular vector field](./img/vectorfield_circular.png)
+
 ### Web
 
 The module [hybrid_routing.web](./hybrid_routing/web/) contains the utils used to deploy our demo. You can learn more about this in our [demo section](#demo).
