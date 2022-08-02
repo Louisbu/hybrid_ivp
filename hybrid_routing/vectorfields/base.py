@@ -14,7 +14,7 @@ class Vectorfield(ABC):
     Methods
     ----------
     get_current : _type_
-        _description_
+        pass upon initialization, returns the current in tuples `(u, v)` given the position of the boat `(x, y)`
     """
 
     def __init__(self):
@@ -26,6 +26,8 @@ class Vectorfield(ABC):
 
     """
     Takes the Jacobian (a 2x2 matrix) of the background vectorfield (W) using JAX package by Google LLC.
+    Jax docs: https://jax.readthedocs.io/en/latest/_autosummary/jax.jacfwd.html#jax.jacfwd 
+            & https://jax.readthedocs.io/en/latest/_autosummary/jax.jacrev.html#jax.jacrev.
     `W: R^2 -> R^2, W: (x,y) -> (u,v)`
     Each function below returns a specific linearized partial derivative with respect to the variable.
 
