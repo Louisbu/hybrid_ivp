@@ -1,0 +1,82 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+% common used math symbols
+\usepackage{latexsym,amsfonts,amssymb,amsthm,amsmath}
+
+% adjust the page size
+\usepackage{geometry}
+\usepackage{listings}
+\geometry{margin=2.5cm}
+\usepackage{graphics}
+\usepackage{wrapfig}
+\usepackage{tikz}
+\usepackage{tkz-euclide}
+\usepackage{color}
+\usetikzlibrary{decorations.text}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=Java,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+\usetikzlibrary{arrows, angles,calc,intersections}
+\usetikzlibrary{shapes.geometric,fit}
+\usepackage{pgfplots}
+\usepgfplotslibrary{polar}
+\usepgflibrary{shapes.geometric}
+\pgfplotsset{my style/.append style={axis x line=middle, axis y line=
+           middle, xlabel={$x$}, ylabel={$y$}}}
+\usepackage{cancel}
+\pgfplotsset{compat=1.15}
+\let\oldemptyset\emptyset \let\emptyset\varnothing 
+
+\begin{document}
+
+\begin{center}
+  \begin{tikzpicture}[
+    dot/.style={circle,fill,inner sep=1pt},
+    tarc/.style={draw,double distance=2pt,angle radius=10mm,
+    pic actions/.append code=\tikzset{postaction={draw}}},
+    sarc/.style={draw,angle radius=4mm},
+    darc/.style={draw,double,angle radius=5mm}]
+      \begin{scope}[nodes={dot}]
+          \path (0,0) node[label = {below:$(x_0, y_0)$}] (A0) {}
+                (10, 10) node[label={above:$(x_N, y_N)$}] (B) {};
+          \draw [dashed] (A0) -- (B);
+          \draw [fill=gray] (0, 4) -- (A0) -- (4, 0) -- cycle;
+          \path (2.82, 2.82) node (C) {};
+          \draw [dotted] (A0)--(C);
+        \end{scope}
+        \draw [decoration={
+          text along path,
+          text={Angle Amplitude},
+          text align={center},
+          raise=0.2cm},decorate] (0,4) arc (90:0:4);
+        \draw [<->] (0,4.1) arc (90:0:4.1);
+        \draw [] (0,4) arc (90:0:4);
+        \draw [->] (A0)--(4,0);
+        \draw [dotted,->] (A0)--(3.85,1);
+        \draw [dotted,->] (A0)--(3.51, 1.9);
+        \path (2,1.6) node[label=$\ddots$] (){};
+        \draw [->] (A0)--(0,4);
+        \draw [dotted,->] (A0)--(1, 3.85);
+        \draw [dotted,->] (A0)--(1.9, 3.51);
+  \end{tikzpicture}
+\end{center}
+\end{document}
