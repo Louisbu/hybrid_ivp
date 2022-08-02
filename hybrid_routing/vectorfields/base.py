@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from tokenize import Floatnumber
+from typing import Iterable
 
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
@@ -7,30 +9,75 @@ from jax import jacfwd, jacrev, jit
 
 
 class Vectorfield(ABC):
+    """The parent class of vector fields.
+
+    Methods
+    ----------
+    get_current : _type_
+        _description_
+    """
+
     def __init__(self):
         pass
 
     @abstractmethod
-    def get_current(self, x, y):
+    def get_current(self, x: float, y: float):
         pass
 
-    def dvdx(self, x, y):
+    """
+    Takes the Jacobian (a 2x2 matrix) of the background vectorfield (W) using JAX package by Google LLC.
+    `W: R^2 -> R^2, W: (x,y) -> (u,v)`
+    Each function below returns a specific linearized partial derivative with respect to the variable.
+
+    Parameters
+    ----------
+    x : x-coordinate of the boat's current location.
+    y : y-coordinate of the boat's current location.
+
+    Returns
+    -------
+    float
+        The value of dv/dx, dv/dy, du/dx, du/dy, with respect to the call.
+    """
+
+    def dvdx(self, x: float, y: float) -> float:
         dvx = jit(jacrev(self.get_current, argnums=1))
         return dvx(x, y)[0]
 
-    def dvdy(self, x, y):
+    def dvdy(self, x: float, y: float) -> float:
         dvy = jit(jacrev(self.get_current, argnums=1))
         return dvy(x, y)[1]
 
-    def dudx(self, x, y):
+    def dudx(self, x: float, y: float) -> float:
         dux = jit(jacfwd(self.get_current, argnums=0))
         return dux(x, y)[0]
 
-    def dudy(self, x, y):
+    def dudy(self, x: float, y: float) -> float:
         duy = jit(jacfwd(self.get_current, argnums=0))
         return duy(x, y)[1]
 
-    def wave(self, p, t, vel=jnp.float16(0.1)):
+    def wave(
+        self,
+        p: Iterable[float, float, float],
+        t: Iterable[float],
+        vel: jnp.float16 = jnp.float16(0.1),
+    ) -> Iterable[float, float, float]:
+        """_summary_
+
+        Parameters
+        ----------
+        p : Iterable[float, float, float]
+            Initial position: `(x, y, theta)`. The pair `(x,y)` is the position of the boat and `theta` is heading (in radians) of the boat (with respect to the x-axis).
+        t : Iterable[float]
+            Array of time steps, evenly spaced inverval from t_start to t_end, of length `n`.
+        vel : jnp.float16, optional
+            Speed of the boat, by default jnp.float16(0.1)
+
+        Returns
+        -------
+        Iterable[float, float, float]
+            A list of coordinates on the locally optimal path of length `n`, same format as `p`: `(x, y, theta)`.
+        """
         x, y, theta = p
         vector_field = self.get_current(x, y)
         dxdt = vel * jnp.cos(theta) + vector_field[0]
