@@ -48,7 +48,7 @@
     <li>
     <a href="#library">Library</a>
     </li>
-    <li><a href="#api">API</a></li>
+    <li><a href="#demo">Demo</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="#acknowledgements">Acknowledgements</a></li>
   </ol>
@@ -105,7 +105,15 @@ Add abstract dependency to `setup.py`. If neccessary, add version requirements b
 
 ## Library
 
-## API
+## Demo
+
+With the `hybrid-routing` environment active, you can initialize the web application by running the following command:
+
+```
+streamlit run hybrid_routing/demo.py --server.port 8501
+```
+
+The demo will start at port 8501 (you can change the port to anyone you prefer). Then you can access the web in your PC by going to http://localhost:8501
 
 ## Contact
 
