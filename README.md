@@ -8,10 +8,10 @@
 *** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
 *** https://www.markdownguide.org/basic-syntax/#reference-style-links
 -->
-<!-- [![Contributors][contributors-shield]][contributors-url] -->
-<!-- [![Forks][forks-shield]][forks-url] -->
-<!-- [![Stargazers][stars-shield]][stars-url] -->
-<!-- [![Issues][issues-shield]][issues-url] -->
+[![Contributors][contributors-shield]][contributors-url]
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
 
 <!-- PROJECT LOGO -->
 <br />
@@ -55,7 +55,6 @@
 </details>
 
 ## About the Project
-![testing workflow](https://github.com/ShrimpyLouis/hybrid_ivp/actions/workflows/python-app.yml/badge.svg)
 
 A Weather Routing implementation. Reduce the fuel consumption and travel time of sea journeys by tracing routes that follow ocean currents.
 
