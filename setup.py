@@ -22,6 +22,7 @@ setuptools.setup(
         "jaxlib==0.3.14",
         "matplotlib",
         "numpy",
+        "pip-tools",
         "scipy",
         "streamlit==1.11.0",
         "tensorflow>=2.9.0",
