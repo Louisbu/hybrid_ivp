@@ -1,5 +1,5 @@
 from math import pi
-
+from typing import Iterable
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,7 +22,7 @@ def optimize_route(
     angle_amplitude: float = 0.25,
     num_angles: int = 50,
     vel: float = 5,
-) -> list[float]:
+) -> Iterable[Iterable[float, float, float]]:
 
     """
     System of ODE is from Zermelo's Navigation Problem https://en.wikipedia.org/wiki/Zermelo%27s_navigation_problem#General_solution)
