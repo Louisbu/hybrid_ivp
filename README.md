@@ -17,7 +17,7 @@
 <br />
 <p align="center">
   <a href="https://github.com/ShrimpyLouis">
-    <img src="img/dalhousie.png" alt="Logo" width="auto" height="100">
+    <img src="img/dal_banner_top.png" alt="Logo" width="auto" height="170">
   </a>
 
   <h3 align="center">HYBRID ROUTING</h3>
@@ -193,6 +193,9 @@ The module [hybrid_routing.tf_utils](./hybrid_routing/tf_utils/) implements all 
 
 ### Web
 
+```
+---SECTION UNDER CONSTRUCTION---
+```
 The module [hybrid_routing.web](./hybrid_routing/web/) contains the utils used to deploy our demo. You can learn more about this in our [demo section](#demo).
 
 ## Demo
