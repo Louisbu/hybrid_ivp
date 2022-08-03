@@ -25,7 +25,7 @@ import streamlit as st
 from PIL import Image
 
 from hybrid_routing.jax_utils.dnj import DNJ
-from hybrid_routing.utils.optimize import optimize_route
+from hybrid_routing.jax_utils.optimize import optimize_route
 from hybrid_routing.vectorfields import *
 from hybrid_routing.vectorfields.base import Vectorfield
 
