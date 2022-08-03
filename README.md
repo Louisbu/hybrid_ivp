@@ -17,7 +17,7 @@
 <br />
 <p align="center">
   <a href="https://github.com/ShrimpyLouis">
-    <img src="img/dal_banner_top.png" alt="Logo" width="auto" height="auto">
+    <img src="img/dal_banner.png" alt="Logo" width="auto" height="auto">
   </a>
 </p>
 
