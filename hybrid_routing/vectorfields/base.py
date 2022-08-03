@@ -62,15 +62,15 @@ class Vectorfield(ABC):
 
     def wave(
         self,
-        p: Iterable[float, float, float],
+        p: Iterable[float],
         t: Iterable[float],
         vel: jnp.float16 = jnp.float16(0.1),
-    ) -> Iterable[float, float, float]:
+    ) -> Iterable[float]:
         """System of ODE set up for scipy initial value problem method to solve in optimize.py
 
         Parameters
         ----------
-        p : Iterable[float, float, float]
+        p : Iterable[float]
             Initial position: `(x, y, theta)`. The pair `(x,y)` is the position of the boat and
             `theta` is heading (in radians) of the boat (with respect to the x-axis).
         t : Iterable[float]
@@ -80,7 +80,7 @@ class Vectorfield(ABC):
 
         Returns
         -------
-        Iterable[float, float, float]
+        Iterable[float]
             A list of coordinates on the locally optimal path of length `n`, same format as `p`: `(x, y, theta)`.
         """
         x, y, theta = p

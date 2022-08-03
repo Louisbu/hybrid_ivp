@@ -1,15 +1,14 @@
 from math import pi
 from typing import Iterable
+
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import numpy as np
-
-
 from hybrid_routing.jax_utils.dnj import DNJ
+from hybrid_routing.jax_utils.zivp import solve_wave
 from hybrid_routing.utils.distance import dist_to_dest, min_dist_to_dest
 from hybrid_routing.vectorfields.base import Vectorfield
 from hybrid_routing.vectorfields.constant_current import ConstantCurrent
-from hybrid_routing.jax_utils.zivp import solve_wave
 
 
 def optimize_route(
@@ -24,17 +23,22 @@ def optimize_route(
     num_angles: int = 50,
     vel: float = 5,
     dist_min: float = 2.0,
-) -> Iterable[Iterable[float, float, float]]:
+) -> Iterable[Iterable[float]]:
 
     """
     System of ODE is from Zermelo's Navigation Problem https://en.wikipedia.org/wiki/Zermelo%27s_navigation_problem#General_solution)
-    1) This function first computes the locally optimized paths with Scipy's ODE solver. Given the starting coordinates (x_start, y_start),
-    time (t_max), speed of the ship (vel), and the direction the ship points in (angle_amplitude / num_angles), the ODE solver returns
+    1) This function first computes the locally optimized paths with Scipy's ODE solver.
+    Given the starting coordinates (x_start, y_start), time (t_max), speed of the ship (vel),
+    and the direction the ship points in (angle_amplitude / num_angles), the ODE solver returns
     a list of points on the locally optimized path.
-    2) We then use a loop to compute all locally optimal paths with given angles in the angle amplitude and store them in a list.
-    3) We next finds the list of paths with an end point (x1, y1) that has the smallest Euclidean distance to the destination (x_end, y_end).
-    4) We then use the end point (x1, y1) on that path to compute the next set of paths by repeating the above algorithm.
-    5) This function terminates till the last end point is within a neighbourhood of the destination (defaults 3 * vel / 4).
+    2) We then use a loop to compute all locally optimal paths with given angles in the
+    angle amplitude and store them in a list.
+    3) We next finds the list of paths with an end point (x1, y1) that has the smallest
+    Euclidean distance to the destination (x_end, y_end).
+    4) We then use the end point (x1, y1) on that path to compute the next set of paths
+    by repeating the above algorithm.
+    5) This function terminates till the last end point is within a neighbourhood of the
+    destination (defaults 3 * vel / 4).
 
     Parameters
     ----------
@@ -49,9 +53,11 @@ def optimize_route(
     y_end : float
         y-coordinate of the destinating position
     time_max : float, optional
-        The total amount of time the ship is allowed to travel by at each iteration, by default 2
+        The total amount of time the ship is allowed to travel by at each iteration,
+        by default 2
     time_step : float, optional
-        Number of steps to reach from 0 to time_max (equivalently, how "smooth" each path is), by default 0.1
+        Number of steps to reach from 0 to time_max (equivalently, how "smooth" each path is),
+        by default 0.1
     angle_amplitude : float, optional
         The search cone range in radians, by default 0.25
     num_angles : int, optional
@@ -65,7 +71,8 @@ def optimize_route(
     Yields
     ------
     Iterator[list[float]]
-        Returns a list with all paths generated within the search cone. The path that terminates closest to destination is on top.
+        Returns a list with all paths generated within the search cone.
+        The path that terminates closest to destination is on top.
     """
     # Compute angle between first and last point
     dx = x_end - x_start
@@ -75,11 +82,6 @@ def optimize_route(
     # Position now
     x = x_start
     y = y_start
-
-    # t_init = tf.constant(0)
-    # solution_times = tfp.math.ode.ChosenBySolver(tf.constant(step_time))
-
-    # solver = tfp.math.ode.BDF()
 
     while dist_to_dest((x, y), (x_end, y_end)) > dist_min:
 
@@ -147,7 +149,7 @@ def main():
     print("Number of points:", pts.shape[0])
     print("Start iteration...")
     for iteration in range(200):
-        pts = dnj.utils.optimize_distance(pts)
+        pts = dnj.optimize_distance(pts)
         if iteration % 10 == 0:
             print("Iteration:", iteration)
 

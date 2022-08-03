@@ -14,35 +14,36 @@ def solve_wave(
     angle_amplitude: float = np.pi,
     num_angles: int = 5,
     vel: float = 2.0,
-) -> Iterable[Iterable[float, float, float]]:
-    """This function encapsulates the first step in the docstring in hybrid_routing.utils.optimize.utils.optimize_route.
+) -> Iterable[Iterable[float]]:
+    """This function first computes the locally optimized paths with Scipy's ODE solver.
+    Given the starting coordinates (x_start, y_start), time (t_max), speed of the ship (vel),
+    and the direction the ship points in (angle_amplitude / num_angles), the ODE solver returns
+    a list of points on the locally optimized path.
 
     Parameters
     ----------
     vectorfield : Vectorfield
         Background vectorfield for the ship to set sail on
-    x_start : float
+    x : float
         x-coordinate of the starting position
-    y_start : float
+    y : float
         y-coordinate of the starting position
-    x_end : float
-        x-coordinate of the destinating position
-    y_end : float
-        y-coordinate of the destinating position
     time_max : float, optional
         The total amount of time the ship is allowed to travel by at each iteration, by default 2
     time_step : float, optional
         Number of steps to reach from 0 to time_max (equivalently, how "smooth" each path is), by default 0.1
+    cone_center : float, optional
+        Center of the cone of search in radians, by default 0
     angle_amplitude : float, optional
-        The search cone range in radians, by default 0.25
+        The search cone range in radians, by default pi
     num_angles : int, optional
-        Number of initial search angles, by default 50
+        Number of initial search angles, by default 5
     vel : float, optional
-        Speed of the ship (unit unknown), by default 5
+        Speed of the ship (unit unknown), by default 2
 
     Returns
     -------
-    Iterable[Iterable[float, float, float]]
+    Iterable[Iterable[float]]
         Returns a list with all paths generated within the search cone.
     """
     t = np.arange(0, time_max, time_step)
@@ -54,9 +55,7 @@ def solve_wave(
     )
 
     for theta in thetas:
-        # p = tf.constant([x, y, theta])
         p = [x, y, theta]
-        # sol = solver.solve(vectorfield.wave, t_init, p, solution_times)
         sol = odeint(vectorfield.wave, p, t, args=(vel,))
         list_routes.append(sol)
 

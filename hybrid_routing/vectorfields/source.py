@@ -19,5 +19,5 @@ class Source(Vectorfield):
     def dudy(self, x: float, y: float) -> float:
         return 0
 
-    def get_current(self, x: float, y: float) -> Iterable[float, float]:
+    def get_current(self, x: float, y: float) -> Iterable[float]:
         return jnp.asarray([(x - 5) / 25, (y - 5) / 25])
