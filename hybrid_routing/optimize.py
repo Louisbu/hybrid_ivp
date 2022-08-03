@@ -3,12 +3,13 @@ from typing import Iterable
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.integrate import odeint
+
 
 from hybrid_routing.jax_utils.dnj import DNJ
 from hybrid_routing.utils.distance import dist_to_dest, min_dist_to_dest
 from hybrid_routing.vectorfields.base import Vectorfield
 from hybrid_routing.vectorfields.constant_current import ConstantCurrent
+from hybrid_routing.jax_utils.zivp import solve_wave
 
 
 def optimize_route(
@@ -22,6 +23,7 @@ def optimize_route(
     angle_amplitude: float = 0.25,
     num_angles: int = 50,
     vel: float = 5,
+    dist_min: float = 2.0,
 ) -> Iterable[Iterable[float, float, float]]:
 
     """
@@ -56,6 +58,8 @@ def optimize_route(
         Number of initial search angles, by default 50
     vel : float, optional
         Speed of the ship (unit unknown), by default 5
+    dist_min : float, optional
+        Minimum terminating distance around the destination (x_end, y_end), by default 2
 
 
     Yields
@@ -74,25 +78,22 @@ def optimize_route(
 
     # t_init = tf.constant(0)
     # solution_times = tfp.math.ode.ChosenBySolver(tf.constant(step_time))
-    t = np.arange(0, time_max, time_step)
 
     # solver = tfp.math.ode.BDF()
 
-    while dist_to_dest((x, y), (x_end, y_end)) > vel / 2:
+    while dist_to_dest((x, y), (x_end, y_end)) > dist_min:
 
-        list_routes = []
-        thetas = np.linspace(
-            cone_center - angle_amplitude / 2,
-            cone_center + angle_amplitude / 2,
-            num_angles,
+        list_routes = solve_wave(
+            vectorfield,
+            x,
+            y,
+            time_max=time_max,
+            time_step=time_step,
+            cone_center=cone_center,
+            angle_amplitude=angle_amplitude,
+            num_angles=num_angles,
+            vel=vel,
         )
-
-        for theta in thetas:
-            # p = tf.constant([x, y, theta])
-            p = [x, y, theta]
-            # sol = solver.solve(vectorfield.wave, t_init, p, solution_times)
-            sol = odeint(vectorfield.wave, p, t, args=(vel,))
-            list_routes.append(sol)
 
         for pt in list_routes:
             plt.plot(pt[:, 0], pt[:, 1], c="gray")
