@@ -15,17 +15,17 @@ class Sink(Vectorfield):
     def __init__(self):
         pass
 
-    def dvdx(self, x, y):
+    def dvdx(self, x: float, y: float) -> float:
         return 0
 
-    def dvdy(self, x, y):
+    def dvdy(self, x: float, y: float) -> float:
         return -1 / 25
 
-    def dudx(self, x, y):
+    def dudx(self, x: float, y: float) -> float:
         return -1 / 25
 
-    def dudy(self, x, y):
+    def dudy(self, x: float, y: float) -> float:
         return 0
 
-    def get_current(self, x, y):
+    def get_current(self, x: float, y: float) -> jnp.array:
         return jnp.asarray([-(x - 8) / 25, -(y - 8) / 25])
