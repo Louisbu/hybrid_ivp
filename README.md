@@ -141,6 +141,8 @@ The module [hybrid_routing.jax_utils](./hybrid_routing/jax_utils/) implements al
 
 ### TF Utils
 
+This module is not used right now. Avoid calling it.
+
 The module [hybrid_routing.tf_utils](./hybrid_routing/tf_utils/) implements all the functions to optimize a route by using TensorFlow.
 
 ### Web
