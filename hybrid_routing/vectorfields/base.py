@@ -25,7 +25,8 @@ class Vectorfield(ABC):
         pass
 
     """
-    Takes the Jacobian (a 2x2 matrix) of the background vectorfield (W) using JAX package by Google LLC if it is not specified in the children classes.
+    Takes the Jacobian (a 2x2 matrix) of the background vectorfield (W) using JAX package 
+    by Google LLC if it is not specified in the children classes.
     
     Jax docs: https://jax.readthedocs.io/en/latest/_autosummary/jax.jacfwd.html#jax.jacfwd 
             & https://jax.readthedocs.io/en/latest/_autosummary/jax.jacrev.html#jax.jacrev.
@@ -71,7 +72,8 @@ class Vectorfield(ABC):
         Parameters
         ----------
         p : Iterable[float, float, float]
-            Initial position: `(x, y, theta)`. The pair `(x,y)` is the position of the boat and `theta` is heading (in radians) of the boat (with respect to the x-axis).
+            Initial position: `(x, y, theta)`. The pair `(x,y)` is the position of the boat and
+            `theta` is heading (in radians) of the boat (with respect to the x-axis).
         t : Iterable[float]
             Array of time steps, evenly spaced inverval from t_start to t_end, of length `n`.
         vel : jnp.float16, optional
