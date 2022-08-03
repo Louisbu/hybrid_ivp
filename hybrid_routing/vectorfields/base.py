@@ -66,7 +66,7 @@ class Vectorfield(ABC):
         t: Iterable[float],
         vel: jnp.float16 = jnp.float16(0.1),
     ) -> Iterable[float, float, float]:
-        """_summary_
+        """System of ODE set up for scipy initial value problem method to solve in optimize.py
 
         Parameters
         ----------
