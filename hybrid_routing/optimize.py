@@ -59,7 +59,7 @@ def optimize_route(
     num_angles : int, optional
         Number of initial search angles, by default 50
     vel : float, optional
-        Speed of the ship, by default 5
+        Speed of the ship (unit unknown), by default 5
 
 
     Yields
