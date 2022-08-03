@@ -15,7 +15,7 @@ def solve_wave(
     num_angles: int = 5,
     vel: float = 2.0,
 ) -> Iterable[Iterable[float, float, float]]:
-    """This function encapsulates the first step in the docstring in hybrid_routing.optimize.optimize_route.
+    """This function encapsulates the first step in the docstring in hybrid_routing.utils.optimize.utils.optimize_route.
 
     Parameters
     ----------

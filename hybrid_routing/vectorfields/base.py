@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from tokenize import Floatnumber
 from typing import Iterable
 
 import jax.numpy as jnp
@@ -21,7 +20,7 @@ class Vectorfield(ABC):
         pass
 
     @abstractmethod
-    def get_current(self, x: float, y: float):
+    def get_current(self, x: float, y: float) -> jnp.array:
         pass
 
     """
