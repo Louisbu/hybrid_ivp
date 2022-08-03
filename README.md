@@ -51,7 +51,7 @@
     </li>
     <li><a href="#demo">Demo</a></li>
     <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgements">Acknowledgements</a></li>
+    <li><a href="#acknowledgements & references">Acknowledgements & References</a></li>
   </ol>
 </details>
 
@@ -70,9 +70,9 @@ The repository is structured into the following directories:
 
 Conveniently, a set of workflows via Github actions are already installed:
 
-- `black`: code formatting. We use this style of formatting.
+- `black`: Code styling & formatting.
 
-In addition, all docstrings shall be be in the numpy format.
+In addition, all docstrings shall be in the numpy format.
 
 ## Getting Started
 
@@ -93,7 +93,7 @@ There are two options, depending on whether you use conda or not:
 
 you can also use `make install`.
 
-The difference between conda and pip is that conda will create an isolated environment while pip will install all the dependencies in the current Python env. This might be a conda environment or any other Python env created by other tools. If you already have the dependencies installed, you can update it to reflect the last version of the packages in the `requirements.txt` with `pip-sync`. 
+The difference between `conda` and `pip` is that conda will create an isolated environment while pip will install all the dependencies in the current Python env. This might be a conda environment or any other Python env created by other tools. If you already have the dependencies installed, you can update it to reflect the last version of the packages in the `requirements.txt` with `pip-sync`. 
 
 ### Add dependencies
 
@@ -214,12 +214,13 @@ Robert Milson - rmilson@dal.ca
 
 Project link: [https://github.com/ShrimpyLouis/hybrid_ivp](https://github.com/ShrimpyLouis/hybrid_ivp)
 
-## Acknowledgements
-
+## Acknowledgements & References
 * [Louis Bu](https://github.com/ShrimpyLouis/)
 * [Daniel Precioso](https://www.linkedin.com/in/daniel-precioso-garcelan/)
 * [Robert Milson](https://www.dal.ca/faculty/science/math-stats/faculty-staff/our-faculty/mathematics/robert-milson.html)
-
+* [Zermelo Navigation Problem](https://en.wikipedia.org/wiki/Zermelo's_navigation_problem)
+* [Parallel iterative methods for variational integration applied to navigation problems](https://arxiv.org/abs/2109.05559)
+* [Google: JAX](https://github.com/google/jax)
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [contributors-shield]: https://img.shields.io/github/contributors/ShrimpyLouis/hybrid_ivp.svg?style=for-the-badge
