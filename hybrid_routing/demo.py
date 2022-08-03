@@ -25,7 +25,7 @@ import streamlit as st
 from PIL import Image
 
 from hybrid_routing.jax_utils.dnj import DNJ
-from hybrid_routing.optimize import optimize_route
+from hybrid_routing.utils.optimize import optimize_route
 from hybrid_routing.vectorfields import *
 from hybrid_routing.vectorfields.base import Vectorfield
 
@@ -229,7 +229,7 @@ if do_run:
 
         t_total += time_max
         for iteration in range(50):
-            pts = dnj.optimize_distance(pts)
+            pts = dnj.utils.optimize_distance(pts)
 
         plt.plot(list_x, list_y, color="orange", linestyle="--", alpha=0.6)
         plt.plot(pts[:, 0], pts[:, 1], color="green", linestyle="--", alpha=0.7)
@@ -241,7 +241,7 @@ if do_run:
     pts = jnp.concatenate([pts, jnp.array([[x_end, y_end]])])
     fig = plt.figure()
     for iteration in range(100):
-        pts = dnj.optimize_distance(pts)
+        pts = dnj.utils.optimize_distance(pts)
     plot_vectorfield()
     plt.plot(list_x, list_y, color="orange", linestyle="--", alpha=0.6)
     plt.plot(pts[:, 0], pts[:, 1], color="green", linestyle="--", alpha=0.7)

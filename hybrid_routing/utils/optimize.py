@@ -147,7 +147,7 @@ def main():
     print("Number of points:", pts.shape[0])
     print("Start iteration...")
     for iteration in range(200):
-        pts = dnj.optimize_distance(pts)
+        pts = dnj.utils.optimize_distance(pts)
         if iteration % 10 == 0:
             print("Iteration:", iteration)
 
