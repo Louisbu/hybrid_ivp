@@ -3,6 +3,14 @@ import jax.numpy as jnp
 
 
 class ConstantCurrent(Vectorfield):
+    """Constant vector field, implements Vectorfield class.
+    Vectorfield defined by:
+    W: (x, y) -> (u, v), u(x, y) = 0.2, v(x, y) = -0.2
+    with:
+        du/dx = 0,      du/dy = 0
+        dv/dx = 0,      dv/dy = 0
+    """
+
     def __init__(self):
         pass
 

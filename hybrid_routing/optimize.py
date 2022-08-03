@@ -1,5 +1,5 @@
 from math import pi
-
+from typing import Iterable
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,7 +22,47 @@ def optimize_route(
     angle_amplitude: float = 0.25,
     num_angles: int = 50,
     vel: float = 5,
-):
+) -> Iterable[Iterable[float, float, float]]:
+
+    """
+    System of ODE is from Zermelo's Navigation Problem https://en.wikipedia.org/wiki/Zermelo%27s_navigation_problem#General_solution)
+    This function first computes the locally optimized paths with Scipy's ODE solver. Given the starting coordinates (x_start, y_start),
+    time (t_max), speed of the ship (vel), and the direction the ship points in (angle_amplitude / num_angles), the ODE solver returns
+    a list of points on the locally optimized path.
+    We then use a loop to compute all locally optimal paths with given angles in the angle amplitude and store them in a list.
+    We next finds the list of paths with an end point (x1, y1) that has the smallest Euclidean distance to the destination (x_end, y_end).
+    We then use the end point (x1, y1) on that path to compute the next set of paths by repeating the above algorithm.
+    This function terminates till the last end point is within a neighbourhood of the destination (defaults 3 * vel / 4).
+
+    Parameters
+    ----------
+    vectorfield : Vectorfield
+        Background vectorfield for the ship to set sail on
+    x_start : float
+        x-coordinate of the starting position
+    y_start : float
+        y-coordinate of the starting position
+    x_end : float
+        x-coordinate of the destinating position
+    y_end : float
+        y-coordinate of the destinating position
+    time_max : float, optional
+        The total amount of time the ship is allowed to travel by at each iteration, by default 2
+    time_step : float, optional
+        Number of steps to reach from 0 to time_max (equivalently, how "smooth" each path is), by default 0.1
+    angle_amplitude : float, optional
+        The search cone range in radians, by default 0.25
+    num_angles : int, optional
+        Number of initial search angles, by default 50
+    vel : float, optional
+        Speed of the ship (unit unknown), by default 5
+
+
+    Yields
+    ------
+    Iterator[list[float]]
+        returns a list with all paths generated within the search cone. The path that terminates closest to destination is on top.
+    """
     # Compute angle between first and last point
     dx = x_end - x_start
     dy = y_end - y_start
