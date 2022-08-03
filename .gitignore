@@ -128,12 +128,17 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# Jupyter notebooks
 *.ipynb
 
+# Resources used in this study, but not part of the library
 resources/
 
+# VSCode stuff
 .vscode/
 
+# LaTeX stuff
 *.aux
 *.log
 *.gz
+*.pdf
