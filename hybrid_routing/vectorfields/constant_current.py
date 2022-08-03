@@ -3,7 +3,7 @@ import jax.numpy as jnp
 
 
 class ConstantCurrent(Vectorfield):
-    """Circular vector field, implements Vectorfield class.
+    """Constant vector field, implements Vectorfield class.
     Vectorfield defined by:
     W: (x, y) -> (u, v), u(x, y) = 0.2, v(x, y) = -0.2
     with:
