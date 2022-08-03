@@ -1,5 +1,3 @@
-from typing import Iterable, Tuple
-
 import numpy as np
 import tensorflow as tf
 from hybrid_routing.tf_utils.benchmark import background_vector_field
@@ -29,36 +27,6 @@ def wave(
     )
     p_new = tf.convert_to_tensor([dxdt, dydt, dthetadt], dtype=tf.float32)
     return tf.constant(p_new)
-
-
-def dist_to_dest(p0: Tuple, p1: Tuple) -> float:
-    """Compute the distance between two points."""
-    return np.sqrt((p0[0] - p1[0]) ** 2 + (p0[1] - p1[1]) ** 2)
-
-
-def min_dist_to_dest(list_routes: Iterable[np.array], pt_goal: Tuple) -> int:
-    """Out of a list of routes, returns the index of the route the ends
-    at the minimum distance to the goal.
-
-    Parameters
-    ----------
-    list_routes : Iterable[np.array]
-        List of routes, defined by (x, y, theta)
-    pt_goal : _type_
-        Goal point, defined by (x, y)
-
-    Returns
-    -------
-    int
-        Index of the route that ends at the minimum distance to the goal.
-    """
-    min_dist = np.inf
-    for idx, route in enumerate(list_routes):
-        dist = dist_to_dest(route[-1], pt_goal)
-        if dist < min_dist:
-            min_dist = dist
-            idx_best_point = idx
-    return idx_best_point
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ import numpy as np
 from scipy.integrate import odeint
 
 from hybrid_routing.jax_utils.dnj import DNJ
-from hybrid_routing.tf_utils.zivp import dist_to_dest, min_dist_to_dest
+from hybrid_routing.utils.distance import dist_to_dest, min_dist_to_dest
 from hybrid_routing.vectorfields.base import Vectorfield
 from hybrid_routing.vectorfields.constant_current import ConstantCurrent
 
