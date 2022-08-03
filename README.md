@@ -19,8 +19,6 @@
   <a href="https://github.com/ShrimpyLouis">
     <img src="img/dal_banner_top.png" alt="Logo" width="auto" height="auto">
   </a>
-
-  <h3 align="center">HYBRID ROUTING</h3>
 </p>
 
 
