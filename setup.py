@@ -24,6 +24,7 @@ setuptools.setup(
         "matplotlib",
         "numpy",
         "pip-tools",
+        "pytest",
         "scipy",
         "streamlit==1.11.0",
         "tensorflow>=2.9.0",
