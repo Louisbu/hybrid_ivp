@@ -25,9 +25,11 @@ class Vectorfield(ABC):
         pass
 
     """
-    Takes the Jacobian (a 2x2 matrix) of the background vectorfield (W) using JAX package by Google LLC.
+    Takes the Jacobian (a 2x2 matrix) of the background vectorfield (W) using JAX package by Google LLC if it is not specified in the children classes.
+    
     Jax docs: https://jax.readthedocs.io/en/latest/_autosummary/jax.jacfwd.html#jax.jacfwd 
             & https://jax.readthedocs.io/en/latest/_autosummary/jax.jacrev.html#jax.jacrev.
+    
     `W: R^2 -> R^2, W: (x,y) -> (u,v)`
     Each function below returns a specific linearized partial derivative with respect to the variable.
 
