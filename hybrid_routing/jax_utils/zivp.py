@@ -4,7 +4,7 @@ from scipy.integrate import odeint
 from hybrid_routing.vectorfields.base import Vectorfield
 
 
-def solve_wave(
+def solve_ode_zermelo(
     vectorfield: Vectorfield,
     x: float,
     y: float,
@@ -56,7 +56,7 @@ def solve_wave(
 
     for theta in thetas:
         p = [x, y, theta]
-        sol = odeint(vectorfield.wave, p, t, args=(vel,))
+        sol = odeint(vectorfield.ode_zermelo, p, t, args=(vel,))
         list_routes.append(sol)
 
     return list_routes

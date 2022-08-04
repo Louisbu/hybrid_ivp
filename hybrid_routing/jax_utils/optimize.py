@@ -5,7 +5,7 @@ import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import numpy as np
 from hybrid_routing.jax_utils.dnj import DNJ
-from hybrid_routing.jax_utils.zivp import solve_wave
+from hybrid_routing.jax_utils.zivp import solve_ode_zermelo
 from hybrid_routing.utils.distance import dist_to_dest, min_dist_to_dest
 from hybrid_routing.vectorfields.base import Vectorfield
 from hybrid_routing.vectorfields.constant_current import ConstantCurrent
@@ -85,7 +85,7 @@ def optimize_route(
 
     while dist_to_dest((x, y), (x_end, y_end)) > dist_min:
 
-        list_routes = solve_wave(
+        list_routes = solve_ode_zermelo(
             vectorfield,
             x,
             y,

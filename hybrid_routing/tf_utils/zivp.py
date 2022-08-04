@@ -5,7 +5,7 @@ import tensorflow_probability as tfp
 from hybrid_routing.tf_utils.benchmark import background_vector_field
 
 
-def wave(
+def ode_zermelo(
     t: tf.Tensor, p: tf.Tensor, vel: tf.Tensor = tf.constant(3, dtype=tf.float32)
 ) -> tf.Tensor:
     x, y, theta = p
@@ -31,7 +31,7 @@ def wave(
     return tf.constant(p_new)
 
 
-def solve_wave(
+def solve_ode_zermelo(
     x: float,
     y: float,
     time_step: float = 0.1,
@@ -79,7 +79,7 @@ def solve_wave(
 
     for theta in thetas:
         p = tf.constant([x, y, theta])
-        sol = solver.solve(wave, t_init, p, solution_times)
+        sol = solver.solve(ode_zermelo, t_init, p, solution_times)
         list_routes.append(sol)
 
     return list_routes
@@ -88,4 +88,4 @@ def solve_wave(
 if __name__ == "__main__":
     p = tf.constant([1.0, 1.0, 0.2], dtype=tf.float32)
     t = tf.constant(np.linspace(0, 10, 1), dtype=tf.float32)
-    print(wave(t, p))
+    print(ode_zermelo(t, p))
