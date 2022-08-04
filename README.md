@@ -55,18 +55,19 @@
   </ol>
 </details>
 
-## About the Project
+# About the Project
 
-A Weather Routing implementation. Reduce the fuel consumption and travel time of sea journeys by tracing routes that follow ocean currents.
+This is an ocean vessel path finding algorithm that optimizes fuel consumption and travel time between destinations. We achieve this by combining the locally optimal solution found by the classic Zermelo's Navigation Problem and applies a discretized Jacobi-Newton method for path smoothing and global optimization.
 
-### Structure
+
+## Structure
 
 The repository is structured into the following directories:
 
 - `/hybrid_routing`: where the python code is.
 
 
-### Contributing
+## Contributing
 
 Conveniently, a set of workflows via Github actions are already installed:
 
@@ -74,17 +75,20 @@ Conveniently, a set of workflows via Github actions are already installed:
 
 In addition, all docstrings shall be in the numpy format.
 
-## Getting Started
+# Getting Started
 
-### Install dependencies
+This package is purely written in Python and it depends on [Scipy](https://scipy.org/), [Numpy](https://numpy.org/), and Google's [JAX](https://github.com/google/jax) with their dependencies. 
+All packages and dependencies are listed in [requirements.txt](./requirements.txt).
 
-There are two options, depending on whether you use conda or not:
+## Install dependencies
+
+There are two install options, we recommend installing an environment using [`conda`](https://docs.conda.io/en/latest/miniconda.html#installing). However it would work with a regular `pip` install.
 
 - Conda: 
   ```
   conda env create -f environment.yml --force
   ```
-
+  Make sure to activate the conda environment once installation is finished.
 - Pip: 
   ```
   pip install -r requirements.txt
@@ -95,14 +99,14 @@ you can also use `make install`.
 
 The difference between `conda` and `pip` is that conda will create an isolated environment while pip will install all the dependencies in the current Python env. This might be a conda environment or any other Python env created by other tools. If you already have the dependencies installed, you can update it to reflect the last version of the packages in the `requirements.txt` with `pip-sync`. 
 
-### Add dependencies
+## Add dependencies
 
 Add abstract dependency to `setup.py`. If neccessary, add version requirements but try to be as flexible as possible
 
 - Update `requirements.txt`: `pip-compile --extra dev > requirements.txt`
 - Update environment: `pip-sync`
 
-## Library
+# Library
 
 The library is structured as follows.
 
