@@ -17,10 +17,8 @@
 <br />
 <p align="center">
   <a href="https://github.com/ShrimpyLouis">
-    <img src="img/dalhousie.png" alt="Logo" width="auto" height="100">
+    <img src="img/dal_banner.png" alt="Logo" width="auto" height="auto">
   </a>
-
-  <h3 align="center">HYBRID ROUTING</h3>
 </p>
 
 
@@ -139,6 +137,52 @@ Here is the expected plot output:
 
 The module [hybrid_routing.jax_utils](./hybrid_routing/jax_utils/) implements all the functions to optimize a route by using JAX.
 
+Example and set up of `optimize_route`:
+```python
+  from hybrid_routing.jax_utils.optimize import optimize_route
+  from hybrid_routing.vectorfields import NoCurrent
+  import numpy
+
+  # We must provide the following parameters:
+  #   vectorfield, (x_start, y_start), (x_end, y_end)
+
+  vectorfield = NoCurrent()
+  x_start, y_start = 0, 0
+  x_end, y_end = 10, 10
+
+  # The following parameters are optional, but we recommend
+  # you test them out:
+  #   time_max, time_step, angle_amplitude,
+  #   num_angles, vel, dist_min
+
+  time_max, time_step = 5, 0.5
+  angle_amplitude, num_angles = np.pi/2, 6
+  vel, dist_min = 2.5, 1
+
+  # invoking optimize route function:
+  list_routes = optimize_route(
+    vectorfield, 
+    x_start, y_start, 
+    x_end, y_end, 
+    time_max = time_max, time_step = time_step, 
+    angle_amplitude = angle_amplitude, num_angles = num_angles, 
+    vel = vel, dist_min = dist_min)
+
+  # "list_routes" contains all paths as entries orginates
+  # from (x_start, y_start), each entry is a list of points
+  # (x, y, theta). It has the same length as time_max / 
+  # time_step, and there are "num_angles" amount of entries.
+  # The path that brings us closest to (x_end, y_end) is
+  # the first entry, as we are printing below:
+  print(list_routes[0])
+```
+
+The diagram below illustrates the setup: \
+(x0, y0) = `(x_start, y_start)`,\
+(xN, yN) = `(x_end, y_end)`.
+![Set up](./img/node_initial_setup.png)
+
+
 ### TF Utils
 
 This module is not used right now. Avoid calling it.
@@ -147,6 +191,9 @@ The module [hybrid_routing.tf_utils](./hybrid_routing/tf_utils/) implements all 
 
 ### Web
 
+```
+---SECTION UNDER CONSTRUCTION---
+```
 The module [hybrid_routing.web](./hybrid_routing/web/) contains the utils used to deploy our demo. You can learn more about this in our [demo section](#demo).
 
 ## Demo
