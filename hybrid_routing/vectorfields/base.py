@@ -60,7 +60,7 @@ class Vectorfield(ABC):
         duy = jit(jacfwd(self.get_current, argnums=0))
         return duy(x, y)[1]
 
-    def wave(
+    def ode_zermelo(
         self,
         p: Iterable[float],
         t: Iterable[float],
