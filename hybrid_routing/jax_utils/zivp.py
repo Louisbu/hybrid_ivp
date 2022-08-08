@@ -60,3 +60,45 @@ def solve_ode_zermelo(
         list_routes.append(sol)
 
     return list_routes
+
+
+def solve_matrix(
+    vectorfield: Vectorfield,
+    x: float,
+    y: float,
+    time_max: float = 2,
+    time_step: float = 0.1,
+    cone_center: float = 0,
+    angle_amplitude: float = 90,
+    num_angles: int = 10,
+    vel: float = 0.5,
+) -> Iterable[Iterable[float]]:
+    t = np.arange(0, time_max, time_step)
+    list_routes = []
+    thetas = np.linspace(
+        cone_center - angle_amplitude / 2,
+        cone_center + angle_amplitude / 2,
+        num_angles,
+    )
+    local_matrix = vectorfield.generate_matrix(x, y)
+    for theta in thetas:
+        p = [x, y, theta]
+        x_temp, y_temp, theta_temp = x, y, theta
+        list_pts = []
+        for steps in t:
+            dx = (
+                vel * time_step * np.cos(theta)
+                + vectorfield.get_current_from_matrix(x_temp, y_temp)[0]
+            )
+            dy = (
+                vel * time_step * np.sin(theta)
+                + vectorfield.get_current_from_matrix(x_temp, y_temp)[1]
+            )
+            theta_temp = np.arctan(dx / dy) + theta
+
+            x_temp += dx
+            y_temp += dy
+            p_temp = [x_temp, y_temp, theta_temp]
+            list_pts.append(p_temp)
+        list_routes.append(list_pts)
+    return list_routes

@@ -95,13 +95,66 @@ class Vectorfield(ABC):
 
         return [dxdt, dydt, dthetadt]
 
-    def plot(
+    def generate_matrix(
         self,
         x_min: float = 0,
-        x_max: float = 125,
+        x_max: float = 250,
         y_min: float = 0,
-        y_max: float = 125,
-        step: float = 20,
+        y_max: float = 250,
+        step: float = 1,
+    ):
+        x, y = np.meshgrid(np.arange(x_min, x_max, step), np.arange(y_min, y_max, step))
+        u, v = self.get_current(x, y)
+        return u, v
+
+    def get_current_from_matrix(
+        self,
+        x: float,
+        y: float,
+        x_min: float = 0,
+        x_max: float = 250,
+        y_min: float = 0,
+        y_max: float = 250,
+        step: float = 0.1,
+    ) -> Iterable[float]:
+        """Takes the current values (u,v) at a given point (x,y) on the grid.
+
+        Parameters
+        ----------
+        x : float
+            x-coordinate of the ship
+        y : float
+            y-coordinate of the ship
+        x_min : float, optional
+            Minimum x-value of the grid, by default 0
+        x_max : float, optional
+            Maximum x-value of the grid, by default 250
+        y_min : float, optional
+            Minimum y-value of the grid, by default 0
+        y_max : float, optional
+            Maximum y_value of the grid, by default 250
+        step : float, optional
+            "Fineness" of the grid, by default 1
+
+        Returns
+        -------
+        Iterable[float, float]
+            the current's velocity in x and y direction (u, v)
+        """
+        a, b = self.generate_matrix()
+        x_arr = np.arange(x_min, x_max, step)
+        y_arr = np.arange(y_min, y_max, step)
+        idx = np.argmin(np.abs(x_arr - x))
+        idy = np.argmin(np.abs(y_arr - y))
+        return [a[idx, idy], b[idx, idy]]
+
+    def plot(
+        self,
+        x_min: float = -4,
+        x_max: float = 4,
+        y_min: float = -4,
+        y_max: float = 4,
+        step: float = 10,
     ):
         """Plots the vector field
 
