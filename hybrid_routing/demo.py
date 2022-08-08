@@ -179,6 +179,7 @@ if any([x_start, y_start, x_end, y_end, angle]):
     fig = plt.figure()
     plot_vectorfield()
     plot_start_and_goal(x_start, y_start, x_end, y_end, angle_amplitude=angle)
+    plt.gca().set_aspect("equal")
     plot.pyplot(fig=fig)
     plt.close(fig)
 
@@ -234,6 +235,7 @@ if do_run:
         plt.plot(list_x, list_y, color="orange", linestyle="--", alpha=0.6)
         plt.plot(pts[:, 0], pts[:, 1], color="green", linestyle="--", alpha=0.7)
         plot_start_and_goal(pts[-1, 0], pts[-1, 1], x_end, y_end)
+        plt.gca().set_aspect("equal")
         plot.pyplot(fig=fig)
         plt.close(fig)
 
@@ -247,6 +249,7 @@ if do_run:
     plt.plot(pts[:, 0], pts[:, 1], color="green", linestyle="--", alpha=0.7)
     plt.xlim([X_MIN, X_MAX])
     plt.ylim([Y_MIN, Y_MAX])
+    plt.gca().set_aspect("equal")
     plot.pyplot(fig=fig)
     plt.close(fig)
 
