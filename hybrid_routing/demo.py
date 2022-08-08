@@ -127,9 +127,6 @@ with row1col4:
         "Number of angles", min_value=3, max_value=40, value=6, step=1, key="num_angle"
     )
 
-# Compute minimum distance
-dist_min = vel * time_max
-
 # DNJ
 time_step = time_max / 20
 dnj = DNJ(vectorfield=vectorfield, time_step=time_step)
@@ -209,7 +206,6 @@ if do_run:
         angle_amplitude=angle * pi / 180,
         num_angles=num_angles,
         vel=vel,
-        dist_min=dist_min,
     ):
         # Add the new routes to the list,
         # keeping the chosen one as first

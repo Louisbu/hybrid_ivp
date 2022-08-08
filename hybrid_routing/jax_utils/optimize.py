@@ -1,5 +1,5 @@
 from math import pi
-from typing import Iterable
+from typing import Iterable, List, Optional
 
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
@@ -22,8 +22,8 @@ def optimize_route(
     angle_amplitude: float = 0.25,
     num_angles: int = 50,
     vel: float = 5,
-    dist_min: float = 2.0,
-) -> Iterable[Iterable[float]]:
+    dist_min: Optional[float] = None,
+) -> List[Iterable[float]]:
 
     """
     System of ODE is from Zermelo's Navigation Problem https://en.wikipedia.org/wiki/Zermelo%27s_navigation_problem#General_solution)
@@ -65,12 +65,12 @@ def optimize_route(
     vel : float, optional
         Speed of the ship (unit unknown), by default 5
     dist_min : float, optional
-        Minimum terminating distance around the destination (x_end, y_end), by default 2
+        Minimum terminating distance around the destination (x_end, y_end), by default None
 
 
     Yields
     ------
-    Iterator[list[float]]
+    Iterator[List[float]]
         Returns a list with all paths generated within the search cone.
         The path that terminates closest to destination is on top.
     """
@@ -82,6 +82,10 @@ def optimize_route(
     # Position now
     x = x_start
     y = y_start
+
+    # Compute minimum distance as the average distance
+    # transversed during one loop
+    dist_min = vel * time_max if dist_min is None else dist_min
 
     while dist_to_dest((x, y), (x_end, y_end)) > dist_min:
 
