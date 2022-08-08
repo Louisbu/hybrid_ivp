@@ -29,6 +29,11 @@ from hybrid_routing.jax_utils.optimize import optimize_route
 from hybrid_routing.vectorfields import *
 from hybrid_routing.vectorfields.base import Vectorfield
 
+X_MIN, X_MAX = -10.0, 20.0
+Y_MIN, Y_MAX = -10.0, 20.0
+NUM_ITER_DNJ = 50
+NUM_ITER_DNJ_END = 100
+
 st.set_page_config(
     layout="centered", page_icon="img/dalhousie.png", page_title="Hybrid Routing"
 )
@@ -63,8 +68,6 @@ vectorfield: Vectorfield = dict_vectorfields[vectorfield_name]()
 # Coordinates #
 ###############
 
-X_MIN, X_MAX = -10.0, 20.0
-Y_MIN, Y_MAX = -10.0, 20.0
 WIDTH = X_MAX - X_MIN
 HEIGHT = Y_MAX - Y_MIN
 
@@ -229,8 +232,8 @@ if do_run:
         pts = jnp.concatenate([pts, jnp.array(route[:, :2])])
 
         t_total += time_max
-        for iteration in range(50):
-            pts = dnj.utils.optimize_distance(pts)
+        for iteration in range(NUM_ITER_DNJ):
+            pts = dnj.optimize_distance(pts)
 
         plt.plot(list_x, list_y, color="orange", linestyle="--", alpha=0.6)
         plt.plot(pts[:, 0], pts[:, 1], color="green", linestyle="--", alpha=0.7)
@@ -242,8 +245,8 @@ if do_run:
     # Once optimization finishes, append last point
     pts = jnp.concatenate([pts, jnp.array([[x_end, y_end]])])
     fig = plt.figure()
-    for iteration in range(100):
-        pts = dnj.utils.optimize_distance(pts)
+    for iteration in range(NUM_ITER_DNJ_END):
+        pts = dnj.optimize_distance(pts)
     plot_vectorfield()
     plt.plot(list_x, list_y, color="orange", linestyle="--", alpha=0.6)
     plt.plot(pts[:, 0], pts[:, 1], color="green", linestyle="--", alpha=0.7)
