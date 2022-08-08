@@ -51,40 +51,44 @@
     </li>
     <li><a href="#demo">Demo</a></li>
     <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgements">Acknowledgements</a></li>
+    <li><a href="#acknowledgements & references">Acknowledgements & References</a></li>
   </ol>
 </details>
 
-## About the Project
+# About the Project
 
-A Weather Routing implementation. Reduce the fuel consumption and travel time of sea journeys by tracing routes that follow ocean currents.
+This is an ocean vessel path finding algorithm that optimizes fuel consumption and travel time between destinations. We achieve this by combining the locally optimal solution found by the classic Zermelo's Navigation Problem and applies a discretized Jacobi-Newton method for path smoothing and global optimization.
 
-### Structure
+
+## Structure
 
 The repository is structured into the following directories:
 
 - `/hybrid_routing`: where the python code is.
 
 
-### Contributing
+## Contributing
 
 Conveniently, a set of workflows via Github actions are already installed:
 
-- `black`: code formatting. We use this style of formatting.
+- `black`: Code styling & formatting.
 
-In addition, all docstrings shall be be in the numpy format.
+In addition, all docstrings shall be in the numpy format.
 
-## Getting Started
+# Getting Started
 
-### Install dependencies
+This package is purely written in Python and it depends on [Scipy](https://scipy.org/), [Numpy](https://numpy.org/), and Google's [JAX](https://github.com/google/jax) with their dependencies. 
+All packages and dependencies are listed in [requirements.txt](./requirements.txt).
 
-There are two options, depending on whether you use conda or not:
+## Install dependencies
+
+There are two install options, we recommend installing an environment using [`conda`](https://docs.conda.io/en/latest/miniconda.html#installing). However it would work with a regular `pip` install.
 
 - Conda: 
   ```
   conda env create -f environment.yml --force
   ```
-
+  Make sure to activate the conda environment once installation is finished.
 - Pip: 
   ```
   pip install -r requirements.txt
@@ -93,16 +97,16 @@ There are two options, depending on whether you use conda or not:
 
 you can also use `make install`.
 
-The difference between conda and pip is that conda will create an isolated environment while pip will install all the dependencies in the current Python env. This might be a conda environment or any other Python env created by other tools. If you already have the dependencies installed, you can update it to reflect the last version of the packages in the `requirements.txt` with `pip-sync`. 
+The difference between `conda` and `pip` is that conda will create an isolated environment while pip will install all the dependencies in the current Python env. This might be a conda environment or any other Python env created by other tools. If you already have the dependencies installed, you can update it to reflect the last version of the packages in the `requirements.txt` with `pip-sync`. 
 
-### Add dependencies
+## Add dependencies
 
 Add abstract dependency to `setup.py`. If neccessary, add version requirements but try to be as flexible as possible
 
 - Update `requirements.txt`: `pip-compile --extra dev > requirements.txt`
 - Update environment: `pip-sync`
 
-## Library
+# Library
 
 The library is structured as follows.
 
@@ -214,12 +218,13 @@ Robert Milson - rmilson@dal.ca
 
 Project link: [https://github.com/ShrimpyLouis/hybrid_ivp](https://github.com/ShrimpyLouis/hybrid_ivp)
 
-## Acknowledgements
-
+## Acknowledgements & References
 * [Louis Bu](https://github.com/ShrimpyLouis/)
 * [Daniel Precioso](https://www.linkedin.com/in/daniel-precioso-garcelan/)
 * [Robert Milson](https://www.dal.ca/faculty/science/math-stats/faculty-staff/our-faculty/mathematics/robert-milson.html)
-
+* [Zermelo Navigation Problem](https://en.wikipedia.org/wiki/Zermelo's_navigation_problem)
+* [Parallel iterative methods for variational integration applied to navigation problems](https://arxiv.org/abs/2109.05559)
+* [Google: JAX](https://github.com/google/jax)
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [contributors-shield]: https://img.shields.io/github/contributors/ShrimpyLouis/hybrid_ivp.svg?style=for-the-badge
