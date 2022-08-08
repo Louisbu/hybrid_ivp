@@ -17,7 +17,7 @@ http://localhost:8501
 import inspect
 import sys
 from math import atan2, cos, pi, sin, sqrt
-from typing import Optional
+from typing import Optional, List
 
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
@@ -26,8 +26,14 @@ from PIL import Image
 
 from hybrid_routing.jax_utils.dnj import DNJ
 from hybrid_routing.jax_utils.optimize import optimize_route
+from hybrid_routing.jax_utils.route import RouteJax
 from hybrid_routing.vectorfields import *
 from hybrid_routing.vectorfields.base import Vectorfield
+
+X_MIN, X_MAX = -10.0, 20.0
+Y_MIN, Y_MAX = -10.0, 20.0
+NUM_ITER_DNJ = 50
+NUM_ITER_DNJ_END = 100
 
 st.set_page_config(
     layout="centered", page_icon="img/dalhousie.png", page_title="Hybrid Routing"
@@ -63,8 +69,6 @@ vectorfield: Vectorfield = dict_vectorfields[vectorfield_name]()
 # Coordinates #
 ###############
 
-X_MIN, X_MAX = -10.0, 20.0
-Y_MIN, Y_MAX = -10.0, 20.0
 WIDTH = X_MAX - X_MIN
 HEIGHT = Y_MAX - Y_MIN
 
@@ -124,7 +128,6 @@ with row1col4:
         "Number of angles", min_value=3, max_value=40, value=6, step=1, key="num_angle"
     )
 
-
 # DNJ
 time_step = time_max / 20
 dnj = DNJ(vectorfield=vectorfield, time_step=time_step)
@@ -169,6 +172,7 @@ def plot_vectorfield():
     vectorfield.plot(x_min=X_MIN, x_max=X_MAX, y_min=Y_MIN, y_max=Y_MAX)
     plt.xlim([X_MIN, X_MAX])
     plt.ylim([Y_MIN, Y_MAX])
+    plt.gca().set_aspect("equal")
 
 
 fig = plt.figure()
@@ -187,12 +191,13 @@ if any([x_start, y_start, x_end, y_end, angle]):
 #######
 
 if do_run:
-    list_x = [x_start]
-    list_y = [y_start]
-    list_routes = []
-    pts = jnp.array([[x_start, y_start]])
-    t_total = 0
-    for add_routes in optimize_route(
+    # Initialize both raw optimized route and optimized route with DNJ
+    route_raw = RouteJax(x_start, y_start)
+    route_dnj = RouteJax(x_start, y_start)
+    # Initialize list of route segments
+    list_routes: List[RouteJax] = []
+    # Build iteration over optimization
+    iter_optim = optimize_route(
         vectorfield,
         x_start,
         y_start,
@@ -203,50 +208,46 @@ if do_run:
         angle_amplitude=angle * pi / 180,
         num_angles=num_angles,
         vel=vel,
-    ):
+    )
+    # Loop through optimization
+    for list_routes_new in iter_optim:
         # Add the new routes to the list,
         # keeping the chosen one as first
-        list_routes = add_routes + list_routes
+        list_routes = list_routes_new + list_routes
+        # Initialize the plot figure
         fig = plt.figure()
         plot_vectorfield()
+        # Loop through the route segments
         for idx, route in enumerate(list_routes):
             if idx == 0:
                 color = "red"
-                list_x.extend(route[:, 0])
-                list_y.extend(route[:, 1])
+                # The best route segment is appended to the optimal route
+                route_raw.append_points(route.x, route.y)
+                route_dnj.append_points(route.x, route.y)
             else:
                 color = "grey"
-            plt.plot(
-                route[:, 0],
-                route[:, 1],
-                color=color,
-                linestyle="-",
-                alpha=0.4,
-            )
+            # Plot the route segment
+            plt.plot(route.x, route.y, color=color, linestyle="-", alpha=0.4)
 
-        route = list_routes[0]
-        pts = jnp.concatenate([pts, jnp.array(route[:, :2])])
-
-        t_total += time_max
-        for iteration in range(50):
-            pts = dnj.utils.optimize_distance(pts)
-
-        plt.plot(list_x, list_y, color="orange", linestyle="--", alpha=0.6)
-        plt.plot(pts[:, 0], pts[:, 1], color="green", linestyle="--", alpha=0.7)
-        plot_start_and_goal(pts[-1, 0], pts[-1, 1], x_end, y_end)
+        # Apply DNJ to the optimal route
+        route_dnj.optimize_distance(dnj, num_iter=NUM_ITER_DNJ)
+        # Plot both raw and DNJ optimized routes
+        plt.plot(route_raw.x, route_raw.y, color="orange", linestyle="--", alpha=0.6)
+        plt.plot(route_dnj.x, route_dnj.y, color="green", linestyle="--", alpha=0.7)
+        plot_start_and_goal(route_dnj.x[-1], route_dnj.y[-1], x_end, y_end)
         plot.pyplot(fig=fig)
         plt.close(fig)
 
     # Once optimization finishes, append last point
-    pts = jnp.concatenate([pts, jnp.array([[x_end, y_end]])])
+    route_raw.append_points(x_end, y_end)
+    route_dnj.append_points(x_end, y_end)
+    route_dnj.optimize_distance(dnj, num_iter=NUM_ITER_DNJ_END)
+
+    # Plot both raw and DNJ optimized routes
     fig = plt.figure()
-    for iteration in range(100):
-        pts = dnj.utils.optimize_distance(pts)
     plot_vectorfield()
-    plt.plot(list_x, list_y, color="orange", linestyle="--", alpha=0.6)
-    plt.plot(pts[:, 0], pts[:, 1], color="green", linestyle="--", alpha=0.7)
-    plt.xlim([X_MIN, X_MAX])
-    plt.ylim([Y_MIN, Y_MAX])
+    plt.plot(route_raw.x, route_raw.y, color="orange", linestyle="--", alpha=0.6)
+    plt.plot(route_dnj.x, route_dnj.y, color="green", linestyle="--", alpha=0.7)
     plot.pyplot(fig=fig)
     plt.close(fig)
 
