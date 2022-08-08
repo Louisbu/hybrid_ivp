@@ -1,12 +1,10 @@
 from typing import List, Optional
 
 import numpy as np
-from hybrid_routing.jax_utils.dnj import DNJ
 from hybrid_routing.jax_utils.route import RouteJax
 from hybrid_routing.jax_utils.zivp import solve_ode_zermelo
 from hybrid_routing.utils.distance import dist_to_dest, min_dist_to_dest
 from hybrid_routing.vectorfields.base import Vectorfield
-from hybrid_routing.vectorfields.constant_current import ConstantCurrent
 
 
 def optimize_route(
@@ -115,44 +113,3 @@ def optimize_route(
 
         if x == x_old and y == y_old:
             break
-
-
-def main():
-    vectorfield = ConstantCurrent()
-    dnj = DNJ(vectorfield)
-    x_start, y_start = 0, 0
-    x_end, y_end = 100, 100
-    time_max = 2
-    angle_amplitude = np.pi / 2
-    num_angles = 10
-    vel = 1
-
-    route_opt = RouteJax(x=x_start, y=y_start)
-    t_total = 0
-
-    for list_routes in optimize_route(
-        vectorfield,
-        x_start,
-        y_start,
-        x_end,
-        y_end,
-        time_max=time_max,
-        angle_amplitude=angle_amplitude,
-        num_angles=num_angles,
-        vel=vel,
-    ):
-        route = list_routes[0]
-        print("  Scipy done! Last point:", route.x[-1], route.y[-1])
-        route_opt.append_points(route.x, route.y)
-
-        t_total += time_max
-    print("Number of points:", len(route_opt.x))
-    print("Start iteration...")
-    for i in range(10):
-        route_opt.optimize_distance(dnj, num_iter=100)
-        print("  Number of interations:", i * 100)
-    print("Number of points:", len(route_opt.x))
-
-
-if __name__ == "__main__":
-    main()
