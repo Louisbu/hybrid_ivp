@@ -15,8 +15,8 @@ def optimize_route(
     y_end: float,
     time_max: float = 2,
     time_step: float = 0.1,
-    angle_amplitude: float = 0.25,
-    num_angles: int = 50,
+    angle_amplitude: float = np.pi,
+    num_angles: int = 5,
     vel: float = 5,
     dist_min: Optional[float] = None,
 ) -> List[RouteJax]:
@@ -55,9 +55,9 @@ def optimize_route(
         Number of steps to reach from 0 to time_max (equivalently, how "smooth" each path is),
         by default 0.1
     angle_amplitude : float, optional
-        The search cone range in radians, by default 0.25
+        The search cone range in radians, by default pi
     num_angles : int, optional
-        Number of initial search angles, by default 50
+        Number of initial search angles, by default 5
     vel : float, optional
         Speed of the ship (unit unknown), by default 5
     dist_min : float, optional
