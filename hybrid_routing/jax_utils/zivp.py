@@ -1,7 +1,8 @@
-from typing import Iterable
+from typing import List
 import numpy as np
 from scipy.integrate import odeint
 from hybrid_routing.vectorfields.base import Vectorfield
+from hybrid_routing.jax_utils.route import RouteJax
 
 
 def solve_ode_zermelo(
@@ -14,7 +15,7 @@ def solve_ode_zermelo(
     angle_amplitude: float = np.pi,
     num_angles: int = 5,
     vel: float = 2.0,
-) -> Iterable[Iterable[float]]:
+) -> List[RouteJax]:
     """This function first computes the locally optimized paths with Scipy's ODE solver.
     Given the starting coordinates (x_start, y_start), time (t_max), speed of the ship (vel),
     and the direction the ship points in (angle_amplitude / num_angles), the ODE solver returns
@@ -43,21 +44,28 @@ def solve_ode_zermelo(
 
     Returns
     -------
-    Iterable[Iterable[float]]
+    List[RouteJax]
         Returns a list with all paths generated within the search cone.
     """
+    # Define the time steps
     t = np.arange(0, time_max, time_step)
-    list_routes = []
-    thetas = np.linspace(
-        cone_center - angle_amplitude / 2,
-        cone_center + angle_amplitude / 2,
-        num_angles,
-    )
 
-    for theta in thetas:
+    # Define the search cone
+    delta = 1e-4 if angle_amplitude <= 1e-4 else angle_amplitude / 2
+    if num_angles > 1:
+        thetas = np.linspace(
+            cone_center - delta,
+            cone_center + delta,
+            num_angles,
+        )
+    else:
+        thetas = [cone_center]
+
+    list_routes: List[RouteJax] = [None] * len(thetas)
+    for idx, theta in enumerate(thetas):
         p = [x, y, theta]
         sol = odeint(vectorfield.ode_zermelo, p, t, args=(vel,))
-        list_routes.append(sol)
+        list_routes[idx] = RouteJax(sol[:, 0], sol[:, 1], theta=sol[:, 2])
 
     return list_routes
 

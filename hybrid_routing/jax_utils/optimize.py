@@ -1,14 +1,10 @@
-from math import pi
-from typing import Iterable
+from typing import List, Optional
 
-import jax.numpy as jnp
-import matplotlib.pyplot as plt
 import numpy as np
-from hybrid_routing.jax_utils.dnj import DNJ
+from hybrid_routing.jax_utils.route import RouteJax
 from hybrid_routing.jax_utils.zivp import solve_ode_zermelo
 from hybrid_routing.utils.distance import dist_to_dest, min_dist_to_dest
 from hybrid_routing.vectorfields.base import Vectorfield
-from hybrid_routing.vectorfields.constant_current import ConstantCurrent
 
 
 def optimize_route(
@@ -19,11 +15,11 @@ def optimize_route(
     y_end: float,
     time_max: float = 2,
     time_step: float = 0.1,
-    angle_amplitude: float = 0.25,
-    num_angles: int = 50,
+    angle_amplitude: float = np.pi,
+    num_angles: int = 5,
     vel: float = 5,
-    dist_min: float = 2.0,
-) -> Iterable[Iterable[float]]:
+    dist_min: Optional[float] = None,
+) -> List[RouteJax]:
 
     """
     System of ODE is from Zermelo's Navigation Problem https://en.wikipedia.org/wiki/Zermelo%27s_navigation_problem#General_solution)
@@ -59,18 +55,18 @@ def optimize_route(
         Number of steps to reach from 0 to time_max (equivalently, how "smooth" each path is),
         by default 0.1
     angle_amplitude : float, optional
-        The search cone range in radians, by default 0.25
+        The search cone range in radians, by default pi
     num_angles : int, optional
-        Number of initial search angles, by default 50
+        Number of initial search angles, by default 5
     vel : float, optional
         Speed of the ship (unit unknown), by default 5
     dist_min : float, optional
-        Minimum terminating distance around the destination (x_end, y_end), by default 2
+        Minimum terminating distance around the destination (x_end, y_end), by default None
 
 
     Yields
     ------
-    Iterator[list[float]]
+    Iterator[List[RouteJax]]
         Returns a list with all paths generated within the search cone.
         The path that terminates closest to destination is on top.
     """
@@ -82,6 +78,10 @@ def optimize_route(
     # Position now
     x = x_start
     y = y_start
+
+    # Compute minimum distance as the average distance
+    # transversed during one loop
+    dist_min = vel * time_max if dist_min is None else dist_min
 
     while dist_to_dest((x, y), (x_end, y_end)) > dist_min:
 
@@ -97,12 +97,10 @@ def optimize_route(
             vel=vel,
         )
 
-        for pt in list_routes:
-            plt.plot(pt[:, 0], pt[:, 1], c="gray")
-
         x_old, y_old = x, y
         idx_best = min_dist_to_dest(list_routes, (x_end, y_end))
-        x, y, theta = list_routes[idx_best][-1]
+        route_best = list_routes[idx_best]
+        x, y = route_best.x[-1], route_best.y[-1]
 
         # Recompute the cone center
         dx = x_end - x
@@ -115,46 +113,3 @@ def optimize_route(
 
         if x == x_old and y == y_old:
             break
-
-
-def main():
-    vectorfield = ConstantCurrent()
-    dnj = DNJ(vectorfield)
-    x_start, y_start = 0, 0
-    x_end, y_end = 100, 100
-    time_max = 2
-    angle_amplitude = pi / 2
-    num_angles = 10
-    vel = 1
-
-    pts = jnp.array([[x_start, y_start]])
-    t_total = 0
-
-    for list_routes in optimize_route(
-        vectorfield,
-        x_start,
-        y_start,
-        x_end,
-        y_end,
-        time_max=time_max,
-        angle_amplitude=angle_amplitude,
-        num_angles=num_angles,
-        vel=vel,
-    ):
-        route = list_routes[0]
-        print("Scipy done! Last point:", route[-1])
-        pts = jnp.concatenate([pts, jnp.array(route[:, :2])])
-
-        t_total += time_max
-    print("Number of points:", pts.shape[0])
-    print("Start iteration...")
-    for iteration in range(200):
-        pts = dnj.optimize_distance(pts)
-        if iteration % 10 == 0:
-            print("Iteration:", iteration)
-
-    print("Number of points:", pts.shape[0])
-
-
-if __name__ == "__main__":
-    main()
