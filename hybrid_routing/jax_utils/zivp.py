@@ -95,19 +95,27 @@ def solve_matrix(
     list_routes: List[RouteJax] = [None] * len(thetas)
 
     for idx, theta in enumerate(thetas):
-        list_pts = []
-        x_temp, y_temp, theta_temp = x, y, theta
-        for steps in t:
+        # Initialize list of (x, y) coordinates
+        list_x, list_y = [x] * len(t), [y] * len(t)
+        list_theta = [theta] * len(t)
+        # (x, y) points will be updated during the iteration
+        x_temp, y_temp = x, y
+        # Compute the vessel velocity components
+        v_x = vel * np.cos(theta)
+        v_y = vel * np.sin(theta)
+        # Loop through the time steps
+        for idx2, _ in enumerate(t):
+            # Compute the displacement, affected by the vectorfield
             dx = (
-                vel * time_step * np.cos(theta)
-                + vectorfield.get_current_from_matrix(x_temp, y_temp)[0]
-            )
-
+                v_x + vectorfield.get_current_from_matrix(x_temp, y_temp)[0]
+            ) * time_step
             dy = (
-                vel * time_step * np.sin(theta)
-                + vectorfield.get_current_from_matrix(x_temp, y_temp)[1]
-            )
+                v_y + vectorfield.get_current_from_matrix(x_temp, y_temp)[1]
+            ) * time_step
             x_temp += dx
             y_temp += dy
-            list_routes[idx] = RouteJax(x_temp, y_temp, theta=theta)
+            list_x[idx2] = x_temp
+            list_y[idx2] = y_temp
+        # Include the new route in the list
+        list_routes[idx] = RouteJax(list_x, list_y, theta=list_theta)
     return list_routes

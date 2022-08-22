@@ -140,7 +140,7 @@ class Vectorfield(ABC):
         x_max: float = 4,
         y_min: float = -4,
         y_max: float = 4,
-        step: float = 0.5,
+        step: float = 1,
     ):
         """Plots the vector field
 
