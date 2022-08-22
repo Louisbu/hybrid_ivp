@@ -24,8 +24,22 @@ class Vectorfield(ABC):
         y_max: float = 10,
         step: float = 1,
     ):
-        self.arr_x, self.arr_y = np.meshgrid(
-            np.arange(x_min, x_max, step), np.arange(y_min, y_max, step)
+        """
+        Parameters
+        ----------
+        x_min : float, optional
+            Minimum x-value of the grid, by default 0
+        x_max : float, optional
+            Maximum x-value of the grid, by default 10
+        y_min : float, optional
+            Minimum y-value of the grid, by default 0
+        y_max : float, optional
+            Maximum y_value of the grid, by default 10
+        step : float, optional
+            "Fineness" of the grid, by default 1
+        """
+        self.arr_x, self.arr_y = jnp.meshgrid(
+            jnp.arange(x_min, x_max, step), jnp.arange(y_min, y_max, step)
         )
         self.u, self.v = self.get_current(self.arr_x, self.arr_y)
 
@@ -105,34 +119,24 @@ class Vectorfield(ABC):
 
         return [dxdt, dydt, dthetadt]
 
-    def get_current_from_matrix(self, x: float, y: float) -> Iterable[float]:
+    def get_current_from_matrix(self, x: jnp.array, y: jnp.array) -> jnp.array:
         """Takes the current values (u,v) at a given point (x,y) on the grid.
 
         Parameters
         ----------
-        x : float
+        x : jnp.array
             x-coordinate of the ship
-        y : float
+        y : jnp.array
             y-coordinate of the ship
-        x_min : float, optional
-            Minimum x-value of the grid, by default 0
-        x_max : float, optional
-            Maximum x-value of the grid, by default 250
-        y_min : float, optional
-            Minimum y-value of the grid, by default 0
-        y_max : float, optional
-            Maximum y_value of the grid, by default 250
-        step : float, optional
-            "Fineness" of the grid, by default 1
 
         Returns
         -------
-        Iterable[float, float]
-            the current's velocity in x and y direction (u, v)
+        jnp.array
+            The current's velocity in x and y direction (u, v)
         """
-        idx = np.argmin(np.abs(self.arr_x - x))
-        idy = np.argmin(np.abs(self.arr_y - y))
-        return [self.u[idx, idy], self.v[idx, idy]]
+        idx = jnp.argmin(jnp.abs(self.arr_x - x))
+        idy = jnp.argmin(jnp.abs(self.arr_y - y))
+        return jnp.asarray([self.u[idx, idy], self.v[idx, idy]])
 
     def plot(
         self,
