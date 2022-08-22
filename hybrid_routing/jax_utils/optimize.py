@@ -19,7 +19,7 @@ def optimize_route(
     num_angles: int = 5,
     vel: float = 5,
     dist_min: Optional[float] = None,
-    discretization: bool = False
+    discretization: bool = False,
 ) -> List[RouteJax]:
 
     """
@@ -120,5 +120,3 @@ def optimize_route(
 
         if x == x_old and y == y_old:
             break
-
-    
