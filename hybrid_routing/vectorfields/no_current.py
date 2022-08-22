@@ -10,7 +10,7 @@ class NoCurrent(Vectorfield):
         du/dx = 0,  du/dy = 0
         dv/dx = 0,  dv/dy = 0
     """
-    
+
     def dvdx(self, x: float, y: float) -> float:
         return 0
 

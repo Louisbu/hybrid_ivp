@@ -29,7 +29,7 @@ def R(a: float, b: float, x: float, y: float) -> Iterable[float]:
 
 class FourVortices(Vectorfield):
     """Vectorfield example demonstrated in Figure 2 in https://arxiv.org/pdf/2109.05559.pdf, implements Vectorfield class."""
-    
+
     def get_current(self, x: float, y: float) -> jnp.array:
         field = 1.7 * (
             jnp.negative(R(2, 2, x, y))
