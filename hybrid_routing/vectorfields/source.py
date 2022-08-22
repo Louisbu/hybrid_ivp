@@ -4,9 +4,6 @@ import jax.numpy as jnp
 
 
 class Source(Vectorfield):
-    def __init__(self):
-        pass
-
     def dvdx(self, x: float, y: float) -> float:
         return 0
 

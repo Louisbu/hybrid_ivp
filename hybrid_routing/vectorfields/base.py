@@ -16,8 +16,18 @@ class Vectorfield(ABC):
         pass upon initialization, returns the current in tuples `(u, v)` given the position of the boat `(x, y)`
     """
 
-    def __init__(self):
-        pass
+    def __init__(
+        self,
+        x_min: float = 0,
+        x_max: float = 10,
+        y_min: float = 0,
+        y_max: float = 10,
+        step: float = 1,
+    ):
+        self.arr_x, self.arr_y = np.meshgrid(
+            np.arange(x_min, x_max, step), np.arange(y_min, y_max, step)
+        )
+        self.u, self.v = self.get_current(self.arr_x, self.arr_y)
 
     @abstractmethod
     def get_current(self, x: float, y: float) -> jnp.array:
@@ -95,28 +105,7 @@ class Vectorfield(ABC):
 
         return [dxdt, dydt, dthetadt]
 
-    def generate_matrix(
-        self,
-        x_min: float = 0,
-        x_max: float = 250,
-        y_min: float = 0,
-        y_max: float = 250,
-        step: float = 1,
-    ):
-        x, y = np.meshgrid(np.arange(x_min, x_max, step), np.arange(y_min, y_max, step))
-        u, v = self.get_current(x, y)
-        return u, v
-
-    def get_current_from_matrix(
-        self,
-        x: float,
-        y: float,
-        x_min: float = -20,
-        x_max: float = 20,
-        y_min: float = -20,
-        y_max: float = 20,
-        step: float = 0.1,
-    ) -> Iterable[float]:
+    def get_current_from_matrix(self, x: float, y: float) -> Iterable[float]:
         """Takes the current values (u,v) at a given point (x,y) on the grid.
 
         Parameters
@@ -141,12 +130,9 @@ class Vectorfield(ABC):
         Iterable[float, float]
             the current's velocity in x and y direction (u, v)
         """
-        a, b = self.generate_matrix(x_min, x_max, y_min, y_max, step)
-        x_arr = np.arange(x_min, x_max, step)
-        y_arr = np.arange(y_min, y_max, step)
-        idx = np.argmin(np.abs(x_arr - x))
-        idy = np.argmin(np.abs(y_arr - y))
-        return [a[idx, idy], b[idx, idy]]
+        idx = np.argmin(np.abs(self.arr_x - x))
+        idy = np.argmin(np.abs(self.arr_y - y))
+        return [self.u[idx, idy], self.v[idx, idy]]
 
     def plot(
         self,
@@ -154,7 +140,7 @@ class Vectorfield(ABC):
         x_max: float = 4,
         y_min: float = -4,
         y_max: float = 4,
-        step: float = 10,
+        step: float = 0.5,
     ):
         """Plots the vector field
 
@@ -169,10 +155,8 @@ class Vectorfield(ABC):
         y_max : float, optional
             Up limit of Y axes, by default 125
         step : float, optional
-            Distance between points to plot, by default 10
+            Distance between points to plot, by default .5
         """
-        x, y = np.meshgrid(
-            np.linspace(x_min, x_max, step), np.linspace(y_min, y_max, step)
-        )
+        x, y = np.meshgrid(np.arange(x_min, x_max, step), np.arange(y_min, y_max, step))
         u, v = self.get_current(x, y)
         plt.quiver(x, y, u, v)

@@ -11,9 +11,6 @@ class ConstantCurrent(Vectorfield):
         dv/dx = 0,      dv/dy = 0
     """
 
-    def __init__(self):
-        pass
-
     def dvdx(self, x: float, y: float) -> float:
         return 0
 

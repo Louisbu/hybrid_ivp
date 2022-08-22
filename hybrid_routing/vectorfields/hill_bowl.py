@@ -11,9 +11,6 @@ class HillBowl(Vectorfield):
         dv/dx = 2 * x * cos(x^2 + y^2),  dv/dy = 2 * y * cos(x^2 + y^2)
     """
 
-    def __init__(self):
-        pass
-
     def get_current(self, x, y):
         return jnp.asarray([x / x, jnp.sin(x**2 + y**2)])
 
