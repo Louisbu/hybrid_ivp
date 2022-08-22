@@ -81,6 +81,35 @@ def solve_discretized_zermelo(
     num_angles: int = 1,
     vel: float = 0.5,
 ) -> List[RouteJax]:
+    """his function instead of using the Scipy's ODE solver, we take advantage of the discretized vectorfield.
+
+    Parameters
+    ----------
+    vectorfield : Vectorfield
+        The vectorfield (background waves) for the ship to sail on
+    x : float
+        x-coordinate of the starting position
+    y : float
+        y_coordinate of the starting position
+    time_max : float, optional
+        The total time for the ship to travel at each iteration, by default 2
+    time_step : float, optional
+        The "smoothness" of the path at each local iteration, by default 0.1
+    cone_center : float, optional
+        The direction of where the boat points at initially, by default 1.0
+    angle_amplitude : float, optional
+        The search angle around the cone_center, by default 0.4
+    num_angles : int, optional
+        Number of initial search angles, by default 1
+    vel : float, optional
+        velocity of the vessel, by default 0.5
+
+    Returns
+    -------
+    List[RouteJax]
+        Returns a list of all paths thats generated at each cone search. All points of the paths are of RouteJax object.
+    """
+
     t = np.arange(0, time_max, time_step)
     # Define the search cone
     delta = 1e-4 if angle_amplitude <= 1e-4 else angle_amplitude / 2
