@@ -23,5 +23,7 @@ class ConstantCurrent(Vectorfield):
     def dudy(self, x: float, y: float) -> float:
         return 0
 
-    def get_current(self, x: float, y: float) -> jnp.array:
-        return jnp.asarray([0.2, -0.2])
+    def get_current(self, x: jnp.array, y: jnp.array) -> jnp.array:
+        u = jnp.full_like(x, 0.2)
+        v = jnp.full_like(x, -0.2)
+        return jnp.stack([u, v])

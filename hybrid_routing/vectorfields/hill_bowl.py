@@ -11,7 +11,7 @@ class HillBowl(Vectorfield):
         dv/dx = 2 * x * cos(x^2 + y^2),  dv/dy = 2 * y * cos(x^2 + y^2)
     """
 
-    def get_current(self, x, y):
+    def get_current(self, x: jnp.array, y: jnp.array) -> jnp.array:
         return jnp.asarray([x / x, jnp.sin(x**2 + y**2)])
 
     def ode_zermelo(self, p, t, vel=jnp.float16(1)):
