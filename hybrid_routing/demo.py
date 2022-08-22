@@ -65,7 +65,7 @@ dict_vectorfields = dict(
 vectorfield_name = st.selectbox("Vector field:", sorted(dict_vectorfields.keys()))
 do_discretize = st.checkbox("Discretized", value=False)
 vectorfield: Vectorfield = dict_vectorfields[vectorfield_name](
-    x_min=X_MIN, x_max=X_MAX, y_min=Y_MIN, y_max=Y_MAX, step=.1
+    x_min=X_MIN, x_max=X_MAX, y_min=Y_MIN, y_max=Y_MAX, step=0.1
 )
 
 ###############
