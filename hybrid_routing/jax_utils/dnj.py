@@ -19,7 +19,7 @@ class DNJ:
 
         def cost_function(x: jnp.array, xp: jnp.array) -> Iterable[float]:
             w = vectorfield.get_current(x[0], x[1])
-            cost = 0.5 * ((xp[0] - w[0]) ** 2 + (xp[1] - w[1]) ** 2)
+            cost = jnp.sqrt(((xp[0] - w[0]) ** 2 + (xp[1] - w[1]) ** 2))
             return cost
 
         def discretized_cost_function(q0: jnp.array, q1: jnp.array) -> Iterable[float]:

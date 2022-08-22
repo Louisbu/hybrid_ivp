@@ -111,10 +111,10 @@ class Vectorfield(ABC):
         self,
         x: float,
         y: float,
-        x_min: float = 0,
-        x_max: float = 250,
-        y_min: float = 0,
-        y_max: float = 250,
+        x_min: float = -20,
+        x_max: float = 20,
+        y_min: float = -20,
+        y_max: float = 20,
         step: float = 0.1,
     ) -> Iterable[float]:
         """Takes the current values (u,v) at a given point (x,y) on the grid.
@@ -141,7 +141,7 @@ class Vectorfield(ABC):
         Iterable[float, float]
             the current's velocity in x and y direction (u, v)
         """
-        a, b = self.generate_matrix()
+        a, b = self.generate_matrix(x_min, x_max, y_min, y_max, step)
         x_arr = np.arange(x_min, x_max, step)
         y_arr = np.arange(y_min, y_max, step)
         idx = np.argmin(np.abs(x_arr - x))

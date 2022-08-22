@@ -76,11 +76,11 @@ def solve_matrix(
     y: float,
     time_max: float = 2,
     time_step: float = 0.1,
-    cone_center: float = 0,
-    angle_amplitude: float = 90,
-    num_angles: int = 10,
+    cone_center: float = 1.0,
+    angle_amplitude: float = 0.4,
+    num_angles: int = 1,
     vel: float = 0.5,
-) -> Iterable[Iterable[float]]:
+) -> List[List[float]]:
     t = np.arange(0, time_max, time_step)
     list_routes = []
     thetas = np.linspace(
@@ -88,22 +88,20 @@ def solve_matrix(
         cone_center + angle_amplitude / 2,
         num_angles,
     )
-    local_matrix = vectorfield.generate_matrix(x, y)
     for theta in thetas:
-        p = [x, y, theta]
-        x_temp, y_temp, theta_temp = x, y, theta
         list_pts = []
+        x_temp, y_temp, theta_temp = x, y, theta
         for steps in t:
+            print(x_temp, y_temp, theta_temp)
             dx = (
                 vel * time_step * np.cos(theta)
                 + vectorfield.get_current_from_matrix(x_temp, y_temp)[0]
             )
+
             dy = (
                 vel * time_step * np.sin(theta)
                 + vectorfield.get_current_from_matrix(x_temp, y_temp)[1]
             )
-            theta_temp = np.arctan(dx / dy) + theta
-
             x_temp += dx
             y_temp += dy
             p_temp = [x_temp, y_temp, theta_temp]
