@@ -10,10 +10,7 @@ class ConstantCurrent(Vectorfield):
         du/dx = 0,      du/dy = 0
         dv/dx = 0,      dv/dy = 0
     """
-
-    def __init__(self):
-        pass
-
+    
     def dvdx(self, x: float, y: float) -> float:
         return 0
 

@@ -92,7 +92,6 @@ def solve_matrix(
         list_pts = []
         x_temp, y_temp, theta_temp = x, y, theta
         for steps in t:
-            print(x_temp, y_temp, theta_temp)
             dx = (
                 vel * time_step * np.cos(theta)
                 + vectorfield.get_current_from_matrix(x_temp, y_temp)[0]
