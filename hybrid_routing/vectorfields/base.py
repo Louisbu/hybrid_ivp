@@ -38,10 +38,10 @@ class Vectorfield(ABC):
         step : float, optional
             "Fineness" of the grid, by default 1
         """
-        self.arr_x, self.arr_y = jnp.meshgrid(
-            jnp.arange(x_min, x_max, step), jnp.arange(y_min, y_max, step)
-        )
-        self.u, self.v = self.get_current(self.arr_x, self.arr_y)
+        self.arr_x = jnp.arange(x_min, x_max, step)
+        self.arr_y = jnp.arange(y_min, y_max, step)
+        mat_x, mat_y = jnp.meshgrid(self.arr_x, self.arr_y)
+        self.u, self.v = self.get_current(mat_x, mat_y)
 
     @abstractmethod
     def get_current(self, x: jnp.array, y: jnp.array) -> jnp.array:
@@ -119,7 +119,7 @@ class Vectorfield(ABC):
 
         return [dxdt, dydt, dthetadt]
 
-    def get_current_from_matrix(self, x: jnp.array, y: jnp.array) -> jnp.array:
+    def get_current_discrete(self, x: jnp.array, y: jnp.array) -> jnp.array:
         """Takes the current values (u,v) at a given point (x,y) on the grid.
 
         Parameters

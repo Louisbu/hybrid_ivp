@@ -22,7 +22,7 @@ class DNJ:
         self.time_step = time_step
         h = time_step
         if discrete_vectorfield:
-            get_current = vectorfield.get_current_from_matrix
+            get_current = vectorfield.get_current_discrete
         else:
             get_current = vectorfield.get_current
 

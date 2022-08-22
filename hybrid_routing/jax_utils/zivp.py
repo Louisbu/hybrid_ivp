@@ -70,7 +70,7 @@ def solve_ode_zermelo(
     return list_routes
 
 
-def solve_matrix(
+def solve_discretized_zermelo(
     vectorfield: Vectorfield,
     x: float,
     y: float,
@@ -106,12 +106,9 @@ def solve_matrix(
         # Loop through the time steps
         for idx2, _ in enumerate(t):
             # Compute the displacement, affected by the vectorfield
-            dx = (
-                v_x + vectorfield.get_current_from_matrix(x_temp, y_temp)[0]
-            ) * time_step
-            dy = (
-                v_y + vectorfield.get_current_from_matrix(x_temp, y_temp)[1]
-            ) * time_step
+            vf_x, vf_y = vectorfield.get_current_discrete(x_temp, y_temp)
+            dx = (v_x + vf_x) * time_step
+            dy = (v_y + vf_y) * time_step
             x_temp += dx
             y_temp += dy
             list_x[idx2] = x_temp
