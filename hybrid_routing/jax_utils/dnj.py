@@ -13,12 +13,21 @@ def hessian(f: Callable, argnums: int = 0):
 
 
 class DNJ:
-    def __init__(self, vectorfield: Vectorfield, time_step: float = 0.1) -> None:
+    def __init__(
+        self,
+        vectorfield: Vectorfield,
+        time_step: float = 0.1,
+        discrete_vectorfield: bool = False,
+    ):
         self.time_step = time_step
         h = time_step
+        if discrete_vectorfield:
+            get_current = vectorfield.get_current_from_matrix
+        else:
+            get_current = vectorfield.get_current
 
         def cost_function(x: jnp.array, xp: jnp.array) -> Iterable[float]:
-            w = vectorfield.get_current(x[0], x[1])
+            w = get_current(x[0], x[1])
             cost = jnp.sqrt(((xp[0] - w[0]) ** 2 + (xp[1] - w[1]) ** 2))
             return cost
 
@@ -53,18 +62,3 @@ class DNJ:
         pts_new = jnp.copy(pts)
         q = self.optim_vect(pts[:-2], pts[1:-1], pts[2:])
         return pts_new.at[1:-1].set(damping * q + pts[1:-1])
-
-
-def main():
-    x0 = jnp.array([[0.0, 0.0], [1.0, 1.0], [2.0, 2.0], [3.0, 3.0]])
-    dnj = DNJ(vectorfield=ConstantCurrent())
-
-    print("Cost\n", dnj.cost_function(x0, x0).shape)
-    print("\nDiscretize\n", dnj.discretized_cost_function(x0, x0).shape)
-
-    x = dnj.optimize_distance(x0)
-    print(x)
-
-
-if __name__ == "__main__":
-    main()
