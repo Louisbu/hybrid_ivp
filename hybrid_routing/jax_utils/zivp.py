@@ -80,19 +80,25 @@ def solve_matrix(
     angle_amplitude: float = 0.4,
     num_angles: int = 1,
     vel: float = 0.5,
-) -> List[List[float]]:
+) -> List[RouteJax]:
     t = np.arange(0, time_max, time_step)
-    list_routes = []
-    thetas = np.linspace(
-        cone_center - angle_amplitude / 2,
-        cone_center + angle_amplitude / 2,
-        num_angles,
-    )
-    for theta in thetas:
+    # Define the search cone
+    delta = 1e-4 if angle_amplitude <= 1e-4 else angle_amplitude / 2
+    if num_angles > 1:
+        thetas = np.linspace(
+            cone_center - delta,
+            cone_center + delta,
+            num_angles,
+        )
+    else:
+        thetas = [cone_center]
+    list_routes: List[RouteJax] = [None] * len(thetas)
+
+    for idx, theta in enumerate(thetas):
         list_pts = []
         x_temp, y_temp, theta_temp = x, y, theta
         for steps in t:
-            print(x_temp, y_temp, theta_temp)
+            # print(x_temp, y_temp, theta_temp)
             dx = (
                 vel * time_step * np.cos(theta)
                 + vectorfield.get_current_from_matrix(x_temp, y_temp)[0]
@@ -104,7 +110,5 @@ def solve_matrix(
             )
             x_temp += dx
             y_temp += dy
-            p_temp = [x_temp, y_temp, theta_temp]
-            list_pts.append(p_temp)
-        list_routes.append(list_pts)
+            list_routes[idx] = RouteJax(x_temp, y_temp, theta=theta)
     return list_routes
