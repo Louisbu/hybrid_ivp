@@ -14,6 +14,7 @@ The you can access the web in your PC by going to:
 http://localhost:8501
 """
 
+import numpy as np
 import inspect
 import sys
 from math import atan2, cos, pi, sin, sqrt
@@ -265,15 +266,27 @@ if do_run:
 if do_run_dnj:
     dist = dist_to_dest((x_start, y_start), (x_end, y_end))
     t_end = dist / vel
-    n_mean = int(t_end / time_step)
-    list_routes = [
-        RouteJax(
-            x=jnp.linspace(x_start, x_end, n),
-            y=jnp.linspace(y_start, y_end, n),
-            t=jnp.linspace(0, t_end, n),
+    list_routes: List[RouteJax] = [None] * num_angles
+    for idx in range(len(list_routes)):
+        x_pts = [x_start]
+        y_pts = [y_start]
+        for j in range(3):
+            dx = x_end - x_pts[-1]
+            dy = y_end - y_pts[-1]
+            ang = atan2(dy, dx)
+            ang += np.random.uniform(-0.5, 0.5, 1) * angle * pi / 180
+            x_pts.append(x_pts[-1] + cos(ang) * dist / 4)
+            y_pts.append(y_pts[-1] + sin(ang) * dist / 4)
+        x_pts.append(x_end)
+        y_pts.append(y_end)
+        x = np.linspace(x_pts[:-1], x_pts[1:], 20).flatten()
+        y = np.linspace(y_pts[:-1], y_pts[1:], 20).flatten()
+        print(x, "\n", y)
+        list_routes[idx] = RouteJax(
+            x=jnp.array(x),
+            y=jnp.array(y),
+            t=jnp.linspace(0, t_end, len(x)),
         )
-        for n in [int(n_mean * 0.4), int(n_mean * 0.8), n_mean]
-    ]
     for route in list_routes:
         line = plt.plot(route.x, route.y, color="green", linestyle="--", alpha=0.7)
         LIST_PLOT_TEMP.append(line)
