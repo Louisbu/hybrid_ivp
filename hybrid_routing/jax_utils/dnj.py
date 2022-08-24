@@ -20,13 +20,13 @@ class DNJ:
 
         def cost_function(x: jnp.array, xp: jnp.array) -> jnp.array:
             w = vectorfield.get_current(x[0], x[1])
-            cost = jnp.sqrt(jnp.power(xp[0] - w[0], 2) + jnp.power(xp[1] - w[1], 2))
+            cost = jnp.sqrt((xp[0] - w[0]) ** 2 + (xp[1] - w[1]) ** 2)
             return cost
 
         def discretized_cost_function(q0: jnp.array, q1: jnp.array) -> jnp.array:
             l1 = cost_function(q0, (q1 - q0) / h)
             l2 = cost_function(q1, (q1 - q0) / h)
-            ld = h / 2 * (jnp.power(l1, 2) + jnp.power(l2, 2))
+            ld = h / 2 * (l1**2 + l2**2)
             return ld
 
         d1ld = grad(discretized_cost_function, argnums=0)
