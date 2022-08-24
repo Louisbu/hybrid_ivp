@@ -2,6 +2,7 @@ from typing import Optional
 
 import jax.numpy as jnp
 from hybrid_routing.jax_utils.dnj import DNJ
+from hybrid_routing.utils.distance import dist_to_dest
 
 
 class RouteJax:
@@ -23,9 +24,37 @@ class RouteJax:
         return jnp.stack([self.x, self.y], axis=1)
 
     def append_points(self, x: jnp.array, y: jnp.array, t: jnp.array):
+        """Append new points to the end of the route
+
+        Parameters
+        ----------
+        x : jnp.array
+            Coordinates on X-axis, typically longitudes
+        y : jnp.array
+            Coordinates on X-axis, typically latitudes
+        t : jnp.array
+            Timestamp of each point, typically in seconds
+        """
         self.x = jnp.concatenate([self.x, jnp.atleast_1d(x)])
         self.y = jnp.concatenate([self.y, jnp.atleast_1d(y)])
         self.t = jnp.concatenate([self.t, jnp.atleast_1d(t)])
+
+    def append_point_end(self, x: float, y: float, vel: float):
+        """Append an end point to the route and compute its timestamp.
+        It does not take into account the effect of vectorfields.
+
+        Parameters
+        ----------
+        x : float
+            Coordinate on X-axis, typically longitude
+        y : float
+            Coordinate on X-axis, typically latitude
+        vel : float
+            Vessel velocity, typically in meters per second
+        """
+        dist = dist_to_dest((self.x[-1], x), (self.y[-1], y))
+        t = dist / vel + self.t[-1]
+        self.append_points(x, y, t)
 
     def optimize_distance(self, dnj: DNJ, num_iter: int = 10):
         pts = self.pts

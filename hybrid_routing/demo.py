@@ -240,8 +240,8 @@ if do_run:
 
     # Once optimization finishes, append last point
     t_end = 0
-    route_raw.append_points(x_end, y_end, t_end)
-    route_dnj.append_points(x_end, y_end, t_end)
+    route_raw.append_point_end(x=x_end, y=y_end, vel=vel)
+    route_dnj.append_point_end(x=x_end, y=y_end, vel=vel)
     route_dnj.optimize_distance(dnj, num_iter=NUM_ITER_DNJ_END)
 
     # Plot both raw and DNJ optimized routes

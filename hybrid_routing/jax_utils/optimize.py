@@ -1,10 +1,35 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import numpy as np
 from hybrid_routing.jax_utils.route import RouteJax
 from hybrid_routing.jax_utils.zivp import solve_ode_zermelo
-from hybrid_routing.utils.distance import dist_to_dest, min_dist_to_dest
+from hybrid_routing.utils.distance import dist_to_dest
 from hybrid_routing.vectorfields.base import Vectorfield
+
+
+def min_dist_to_dest(list_routes: List[RouteJax], pt_goal: Tuple) -> int:
+    """Out of a list of routes, returns the index of the route the ends
+    at the minimum distance to the goal.
+
+    Parameters
+    ----------
+    list_routes : List[np.array]
+        List of routes, defined by (x, y, theta)
+    pt_goal : _type_
+        Goal point, defined by (x, y)
+
+    Returns
+    -------
+    int
+        Index of the route that ends at the minimum distance to the goal.
+    """
+    min_dist = np.inf
+    for idx, route in enumerate(list_routes):
+        dist = dist_to_dest((route.x[-1], route.y[-1]), pt_goal)
+        if dist < min_dist:
+            min_dist = dist
+            idx_best_point = idx
+    return idx_best_point
 
 
 def optimize_route(
