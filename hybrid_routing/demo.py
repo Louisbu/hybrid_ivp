@@ -29,6 +29,7 @@ from hybrid_routing.jax_utils.optimize import optimize_route
 from hybrid_routing.jax_utils.route import RouteJax
 from hybrid_routing.vectorfields import *
 from hybrid_routing.vectorfields.base import Vectorfield
+from hybrid_routing.utils.distance import dist_to_dest
 
 X_MIN, X_MAX = -10.0, 20.0
 Y_MIN, Y_MAX = -10.0, 20.0
@@ -142,6 +143,9 @@ row2col1, row2col2 = st.columns(2)
 with row2col1:
     do_run = st.button("Run")
 
+with row2col2:
+    do_run_dnj = st.button("Run only DNJ")
+
 
 ########
 # Plot #
@@ -251,6 +255,26 @@ if do_run:
     plt.plot(route_dnj.x, route_dnj.y, color="green", linestyle="--", alpha=0.7)
     plot.pyplot(fig=fig)
     plt.close(fig)
+
+################
+# Run only DNJ #
+################
+
+if do_run_dnj:
+    dist = dist_to_dest((x_start, x_end), (y_start, y_end))
+    t_end = dist / vel
+    n = int(t_end / time_step)
+    x = jnp.linspace(x_start, x_end, n)
+    y = jnp.linspace(y_start, y_end, n)
+    t = jnp.linspace(0, t_end, n)
+    route = RouteJax(x=x, y=y, t=t)
+    for iter in range(10):
+        route.optimize_distance(dnj, num_iter=10)
+        fig = plt.figure()
+        plot_vectorfield()
+        plt.plot(route.x, route.y, color="green", linestyle="--", alpha=0.7)
+        plot.pyplot(fig=fig)
+        plt.close(fig)
 
 ###########
 # Credits #
