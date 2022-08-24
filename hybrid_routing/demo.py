@@ -17,7 +17,7 @@ http://localhost:8501
 import inspect
 import sys
 from math import atan2, cos, pi, sin, sqrt
-from typing import Optional, List
+from typing import List
 
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
@@ -27,16 +27,16 @@ from PIL import Image
 from hybrid_routing.jax_utils.dnj import DNJ
 from hybrid_routing.jax_utils.optimize import optimize_route
 from hybrid_routing.jax_utils.route import RouteJax
+from hybrid_routing.utils.distance import dist_to_dest
 from hybrid_routing.vectorfields import *
 from hybrid_routing.vectorfields.base import Vectorfield
-from hybrid_routing.utils.distance import dist_to_dest
 
 X_MIN, X_MAX = 0.0, 6.0
 Y_MIN, Y_MAX = -1.0, 6.0
 X_START, Y_START = 0.0, 0.0
 X_END, Y_END = 6.0, 2.0
 NUM_ITER_DNJ = 50
-NUM_ITER_DNJ_END = 100
+NUM_ITER_DNJ_END = 500
 
 st.set_page_config(
     layout="centered", page_icon="img/dalhousie.png", page_title="Hybrid Routing"
@@ -85,9 +85,9 @@ with row1col1:
     )
     vel = st.slider(
         "Boat velocity",
-        min_value=1.0,
-        max_value=10.0,
-        value=5.0,
+        min_value=0.5,
+        max_value=5.0,
+        value=1.0,
         step=0.1,
         key="velocity",
     )
@@ -101,7 +101,7 @@ with row1col2:
     time_iter = st.slider(
         "Time between decisions",
         min_value=0.1,
-        max_value=5.0,
+        max_value=3.0,
         value=1.0,
         step=0.1,
         key="time",
@@ -153,26 +153,34 @@ with row2col2:
 # Plot #
 ########
 
+LIST_PLOT_TEMP: List = []
 
-def plot_start_and_goal(x1, y1, x2, y2, angle_amplitude: Optional[float] = None):
-    if angle_amplitude:
-        dx = x2 - x1
-        dy = y2 - y1
-        dist = sqrt(dx**2 + dy**2) / 2
-        angle_rad = atan2(dy, dx)
-        angle_amp_rad = angle_amplitude * pi / 180
-        angle_max = angle_rad + angle_amp_rad / 2
-        x_up = x1 + dist * cos(angle_max)
-        y_up = y1 + dist * sin(angle_max)
-        angle_min = angle_rad - angle_amp_rad / 2
-        x_down = x1 + dist * cos(angle_min)
-        y_down = y1 + dist * sin(angle_min)
-        plt.plot([x1, x_up], [y1, y_up], "g--", alpha=0.4)
-        plt.plot([x1, x_down], [y1, y_down], "g--", alpha=0.4)
 
-    plt.plot([x1, x2], [y1, y2], "r--", alpha=0.8)
+def remove_plot_lines_temporal():
+    for line in LIST_PLOT_TEMP:
+        line.pop(0).remove()
+    LIST_PLOT_TEMP.clear()
+
+
+def plot_start_and_goal(x1, y1, x2, y2, angle_amplitude: float):
+    dx = x2 - x1
+    dy = y2 - y1
+    dist = sqrt(dx**2 + dy**2) / 2
+    angle_rad = atan2(dy, dx)
+    angle_amp_rad = angle_amplitude * pi / 180
+    angle_max = angle_rad + angle_amp_rad / 2
+    x_up = x1 + dist * cos(angle_max)
+    y_up = y1 + dist * sin(angle_max)
+    angle_min = angle_rad - angle_amp_rad / 2
+    x_down = x1 + dist * cos(angle_min)
+    y_down = y1 + dist * sin(angle_min)
+    line_up = plt.plot([x1, x_up], [y1, y_up], "g--", alpha=0.4)
+    line_down = plt.plot([x1, x_down], [y1, y_down], "g--", alpha=0.4)
+
+    line_center = plt.plot([x1, x2], [y1, y2], "r--", alpha=0.8)
     plt.scatter(x1, y1, c="g")
     plt.scatter(x2, y2, c="r")
+    LIST_PLOT_TEMP.extend([line_up, line_down, line_center])
 
 
 def plot_vectorfield():
@@ -184,14 +192,10 @@ def plot_vectorfield():
 
 fig = plt.figure()
 plot = st.pyplot(fig=fig)
-
-
-if any([x_start, y_start, x_end, y_end, angle]):
-    fig = plt.figure()
-    plot_vectorfield()
-    plot_start_and_goal(x_start, y_start, x_end, y_end, angle_amplitude=angle)
-    plot.pyplot(fig=fig)
-    plt.close(fig)
+plot_vectorfield()
+plot_start_and_goal(x_start, y_start, x_end, y_end, angle_amplitude=angle)
+plot.pyplot(fig=fig)
+remove_plot_lines_temporal()
 
 #######
 # Run #
@@ -201,8 +205,6 @@ if do_run:
     # Initialize both raw optimized route and optimized route with DNJ
     route_raw = RouteJax(x=x_start, y=y_start, t=0)
     route_dnj = RouteJax(x=x_start, y=y_start, t=0)
-    # Initialize list of route segments
-    list_routes: List[RouteJax] = []
     # Build iteration over optimization
     iter_optim = optimize_route(
         vectorfield,
@@ -217,13 +219,7 @@ if do_run:
         vel=vel,
     )
     # Loop through optimization
-    for list_routes_new in iter_optim:
-        # Add the new routes to the list,
-        # keeping the chosen one as first
-        list_routes = list_routes_new + list_routes
-        # Initialize the plot figure
-        fig = plt.figure()
-        plot_vectorfield()
+    for list_routes in iter_optim:
         # Loop through the route segments
         for idx, route in enumerate(list_routes):
             if idx == 0:
@@ -239,11 +235,16 @@ if do_run:
         # Apply DNJ to the optimal route
         route_dnj.optimize_distance(dnj, num_iter=NUM_ITER_DNJ)
         # Plot both raw and DNJ optimized routes
-        plt.plot(route_raw.x, route_raw.y, color="orange", linestyle="--", alpha=0.6)
-        plt.plot(route_dnj.x, route_dnj.y, color="green", linestyle="--", alpha=0.7)
-        plot_start_and_goal(route_dnj.x[-1], route_dnj.y[-1], x_end, y_end)
+        line_raw = plt.plot(
+            route_raw.x, route_raw.y, color="orange", linestyle="--", alpha=0.6
+        )
+        line_dnj = plt.plot(
+            route_dnj.x, route_dnj.y, color="green", linestyle="--", alpha=0.7
+        )
+        # Include this lines in the temporal dict, they will be updated in each iteration
+        LIST_PLOT_TEMP.extend([line_raw, line_dnj])
         plot.pyplot(fig=fig)
-        plt.close(fig)
+        remove_plot_lines_temporal()
 
     # Once optimization finishes, append last point
     t_end = 0
@@ -252,8 +253,6 @@ if do_run:
     route_dnj.optimize_distance(dnj, num_iter=NUM_ITER_DNJ_END)
 
     # Plot both raw and DNJ optimized routes
-    fig = plt.figure()
-    plot_vectorfield()
     plt.plot(route_raw.x, route_raw.y, color="orange", linestyle="--", alpha=0.6)
     plt.plot(route_dnj.x, route_dnj.y, color="green", linestyle="--", alpha=0.7)
     plot.pyplot(fig=fig)
@@ -271,17 +270,15 @@ if do_run_dnj:
     y = jnp.linspace(y_start, y_end, n)
     t = jnp.linspace(0, t_end, n)
     route = RouteJax(x=x, y=y, t=t)
-    for iter in range(20):
-        route.optimize_distance(dnj, num_iter=200)
-        fig = plt.figure()
-        plot_vectorfield()
-        plt.plot(route.x, route.y, color="green", linestyle="--", alpha=0.7)
-        plot.pyplot(fig=fig)
-        plt.close(fig)
-    fig = plt.figure()
-    plot_vectorfield()
-    plt.plot(route.x, route.y, color="green", linestyle="--", alpha=0.7)
+    line = plt.plot(route.x, route.y, color="green", linestyle="--", alpha=0.7)
+    LIST_PLOT_TEMP.append(line)
     plot.pyplot(fig=fig)
+    for iter in range(50):
+        route.optimize_distance(dnj, num_iter=100)
+        remove_plot_lines_temporal()
+        line = plt.plot(route.x, route.y, color="green", linestyle="--", alpha=0.7)
+        LIST_PLOT_TEMP.append(line)
+        plot.pyplot(fig=fig)
     plt.close(fig)
 
 ###########
