@@ -5,7 +5,6 @@ import jax.numpy as jnp
 from hybrid_routing.vectorfields.base import Vectorfield
 from hybrid_routing.vectorfields.constant_current import ConstantCurrent
 from jax import grad, jacfwd, jacrev, jit, vmap
-from pyparsing import Iterable
 
 
 def hessian(f: Callable, argnums: int = 0):
