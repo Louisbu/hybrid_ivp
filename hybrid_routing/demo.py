@@ -131,7 +131,9 @@ with row1col4:
 
 # DNJ
 time_step = time_max / 20
-dnj = DNJ(vectorfield=vectorfield, time_step=time_step, optimize=choose_cost_function)
+dnj = DNJ(
+    vectorfield=vectorfield, time_step=time_step, optimize_for=choose_cost_function
+)
 
 ###########
 # Buttons #

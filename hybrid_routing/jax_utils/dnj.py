@@ -13,7 +13,10 @@ def hessian(f: Callable, argnums: int = 0):
 
 class DNJ:
     def __init__(
-        self, vectorfield: Vectorfield, time_step: float = 0.1, optimize: str = "fuel"
+        self,
+        vectorfield: Vectorfield,
+        time_step: float = 0.1,
+        optimize_for: str = "fuel",
     ):
         self.vectorfield = vectorfield
         self.time_step = time_step
@@ -39,9 +42,9 @@ class DNJ:
 
             return cost
 
-        if optimize == "fuel":
+        if optimize_for == "fuel":
             cost_function = cost_function_fuel
-        elif optimize == "time":
+        elif optimize_for == "time":
             cost_function = cost_function_time
         else:
             raise ValueError("unrecognized cost function")
