@@ -21,28 +21,27 @@ class DNJ:
         self.time_step = time_step
         h = time_step
 
-        def cost_function_fuel(x: jnp.array, xp: jnp.array) -> jnp.array:
-            w = vectorfield.get_current(x[0], x[1])
-            cost = jnp.sqrt((xp[0] - w[0]) ** 2 + (xp[1] - w[1]) ** 2)
-            return cost
-
-        def cost_function_time(x: jnp.array, xp: jnp.array) -> jnp.array:
-            w = vectorfield.get_current(x[0], x[1])
-            a = 1 - (w[0] ** 2 + w[1] ** 2)
-            # L=0.5* ((xp[0]- w[0])**2 + (xp[1]-w[1])**2)
-            cost = (
-                jnp.sqrt(
-                    1 / a * (xp[0] ** 2 + xp[1] ** 2)
-                    + 1 / (a**2) * (w[0] * xp[0] + w[1] * xp[1]) ** 2
-                )
-                - 1 / a * (w[0] * xp[0] + w[1] * xp[1])
-            ) ** 2
-            return cost
-
         if optimize_for == "fuel":
-            cost_function = cost_function_fuel
+
+            def cost_function(x: jnp.array, xp: jnp.array) -> jnp.array:
+                w = vectorfield.get_current(x[0], x[1])
+                cost = jnp.sqrt((xp[0] - w[0]) ** 2 + (xp[1] - w[1]) ** 2)
+                return cost
+
         elif optimize_for == "time":
-            cost_function = cost_function_time
+
+            def cost_function(x: jnp.array, xp: jnp.array) -> jnp.array:
+                w = vectorfield.get_current(x[0], x[1])
+                a = 1 - (w[0] ** 2 + w[1] ** 2)
+                cost = (
+                    jnp.sqrt(
+                        1 / a * (xp[0] ** 2 + xp[1] ** 2)
+                        + 1 / (a**2) * (w[0] * xp[0] + w[1] * xp[1]) ** 2
+                    )
+                    - 1 / a * (w[0] * xp[0] + w[1] * xp[1])
+                ) ** 2
+                return cost
+
         else:
             raise ValueError("unrecognized cost function")
 
