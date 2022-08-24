@@ -1,4 +1,5 @@
 from functools import partial
+from pickletools import optimize
 from typing import Callable
 
 import jax.numpy as jnp
@@ -35,15 +36,13 @@ class DNJ:
                 jnp.sqrt(
                     1 / a * (xp[0] ** 2 + xp[1] ** 2)
                     + 1 / (a**2) * (w[0] * xp[0] + w[1] * xp[1]) ** 2
-                    - 1 / a * (w[0] * xp[0] + w[1] * xp[1])
                 )
-                ** 2
-            )
-
+                - 1 / a * (w[0] * xp[0] + w[1] * xp[1])
+            ) ** 2
             return cost
 
         if optimize_for == "fuel":
-            cost_function = cost_function_fuel
+            cost_function = cost_function_time
         elif optimize_for == "time":
             cost_function = cost_function_time
         else:
