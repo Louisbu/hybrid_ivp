@@ -156,10 +156,10 @@ Example and set up of `optimize_route`:
 
   # The following parameters are optional, but we recommend
   # you test them out:
-  #   time_max, time_step, angle_amplitude,
+  #   time_iter, time_step, angle_amplitude,
   #   num_angles, vel, dist_min
 
-  time_max, time_step = 5, 0.5
+  time_iter, time_step = 5, 0.5
   angle_amplitude, num_angles = np.pi/2, 6
   vel, dist_min = 2.5, 1
 
@@ -168,13 +168,13 @@ Example and set up of `optimize_route`:
     vectorfield, 
     x_start, y_start, 
     x_end, y_end, 
-    time_max = time_max, time_step = time_step, 
+    time_iter = time_iter, time_step = time_step, 
     angle_amplitude = angle_amplitude, num_angles = num_angles, 
     vel = vel, dist_min = dist_min)
 
   # "list_routes" contains all paths as entries orginates
   # from (x_start, y_start), each entry is a list of points
-  # (x, y, theta). It has the same length as time_max / 
+  # (x, y, theta). It has the same length as time_iter / 
   # time_step, and there are "num_angles" amount of entries.
   # The path that brings us closest to (x_end, y_end) is
   # the first entry, as we are printing below:

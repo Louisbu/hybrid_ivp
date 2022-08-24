@@ -95,7 +95,7 @@ with row1col2:
     y_start = st.number_input(
         "Y", min_value=Y_MIN, max_value=Y_MAX, value=Y_MIN + HEIGHT / 4, key="y_start"
     )
-    time_max = st.slider(
+    time_iter = st.slider(
         "Time between decisions",
         min_value=0.1,
         max_value=5.0,
@@ -130,7 +130,7 @@ with row1col4:
     )
 
 # DNJ
-time_step = time_max / 20
+time_step = time_iter / 20
 dnj = DNJ(vectorfield=vectorfield, time_step=time_step, optimize_for=optimize_for)
 
 ###########
@@ -193,8 +193,8 @@ if any([x_start, y_start, x_end, y_end, angle]):
 
 if do_run:
     # Initialize both raw optimized route and optimized route with DNJ
-    route_raw = RouteJax(x_start, y_start)
-    route_dnj = RouteJax(x_start, y_start)
+    route_raw = RouteJax(x=x_start, y=y_start, t=0)
+    route_dnj = RouteJax(x=x_start, y=y_start, t=0)
     # Initialize list of route segments
     list_routes: List[RouteJax] = []
     # Build iteration over optimization
@@ -204,7 +204,7 @@ if do_run:
         y_start,
         x_end,
         y_end,
-        time_max=time_max,
+        time_iter=time_iter,
         time_step=time_step,
         angle_amplitude=angle * pi / 180,
         num_angles=num_angles,
@@ -223,8 +223,8 @@ if do_run:
             if idx == 0:
                 color = "red"
                 # The best route segment is appended to the optimal route
-                route_raw.append_points(route.x, route.y)
-                route_dnj.append_points(route.x, route.y)
+                route_raw.append_points(route.x, route.y, route.t)
+                route_dnj.append_points(route.x, route.y, route.t)
             else:
                 color = "grey"
             # Plot the route segment
@@ -240,8 +240,9 @@ if do_run:
         plt.close(fig)
 
     # Once optimization finishes, append last point
-    route_raw.append_points(x_end, y_end)
-    route_dnj.append_points(x_end, y_end)
+    t_end = 0
+    route_raw.append_point_end(x=x_end, y=y_end, vel=vel)
+    route_dnj.append_point_end(x=x_end, y=y_end, vel=vel)
     route_dnj.optimize_distance(dnj, num_iter=NUM_ITER_DNJ_END)
 
     # Plot both raw and DNJ optimized routes
