@@ -12,9 +12,6 @@ class Sink(Vectorfield):
         dv/dx = 0      ,    dv/dy = -1/25
     """
 
-    def __init__(self):
-        pass
-
     def dvdx(self, x: float, y: float) -> float:
         return 0
 
@@ -27,5 +24,5 @@ class Sink(Vectorfield):
     def dudy(self, x: float, y: float) -> float:
         return 0
 
-    def get_current(self, x: float, y: float) -> jnp.array:
+    def get_current(self, x: jnp.array, y: jnp.array) -> jnp.array:
         return jnp.asarray([-(x - 8) / 25, -(y - 8) / 25])
