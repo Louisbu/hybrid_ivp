@@ -68,6 +68,6 @@ def solve_ode_zermelo(
     for idx, theta in enumerate(thetas):
         p = [x, y, theta]
         sol = odeint(vectorfield.ode_zermelo, p, t, args=(vel,))
-        list_routes[idx] = RouteJax(sol[:, 0], sol[:, 1], t, theta=sol[:, 2])
+        list_routes[idx] = RouteJax(x=sol[:, 0], y=sol[:, 1], t=t, theta=sol[:, 2])
 
     return list_routes
