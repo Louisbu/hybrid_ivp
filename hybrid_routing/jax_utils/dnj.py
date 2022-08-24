@@ -1,11 +1,9 @@
 from functools import partial
-from pickletools import optimize
 from typing import Callable
 
 import jax.numpy as jnp
 from hybrid_routing.vectorfields.base import Vectorfield
 from jax import grad, jacfwd, jacrev, jit, vmap
-from pyparsing import Iterable
 
 
 def hessian(f: Callable, argnums: int = 0):
@@ -42,7 +40,7 @@ class DNJ:
             return cost
 
         if optimize_for == "fuel":
-            cost_function = cost_function_time
+            cost_function = cost_function_fuel
         elif optimize_for == "time":
             cost_function = cost_function_time
         else:
