@@ -9,7 +9,8 @@ def solve_ode_zermelo(
     vectorfield: Vectorfield,
     x: float,
     y: float,
-    time_max: float = 2,
+    time_start: float = 0,
+    time_end: float = 2,
     time_step: float = 0.1,
     cone_center: float = 0,
     angle_amplitude: float = np.pi,
@@ -29,10 +30,12 @@ def solve_ode_zermelo(
         x-coordinate of the starting position
     y : float
         y-coordinate of the starting position
-    time_max : float, optional
-        The total amount of time the ship is allowed to travel by at each iteration, by default 2
+    time_start : float, optional
+        Start time of the iteration, by default 0
+    time_end : float, optional
+        End time of the iteration, by default 2
     time_step : float, optional
-        Number of steps to reach from 0 to time_max (equivalently, how "smooth" each path is), by default 0.1
+        Number of steps to reach from 0 to time_iter (equivalently, how "smooth" each path is), by default 0.1
     cone_center : float, optional
         Center of the cone of search in radians, by default 0
     angle_amplitude : float, optional
@@ -48,7 +51,7 @@ def solve_ode_zermelo(
         Returns a list with all paths generated within the search cone.
     """
     # Define the time steps
-    t = np.arange(0, time_max, time_step)
+    t = np.arange(time_start, time_end, time_step)
 
     # Define the search cone
     delta = 1e-4 if angle_amplitude <= 1e-4 else angle_amplitude / 2
@@ -65,6 +68,6 @@ def solve_ode_zermelo(
     for idx, theta in enumerate(thetas):
         p = [x, y, theta]
         sol = odeint(vectorfield.ode_zermelo, p, t, args=(vel,))
-        list_routes[idx] = RouteJax(sol[:, 0], sol[:, 1], theta=sol[:, 2])
+        list_routes[idx] = RouteJax(sol[:, 0], sol[:, 1], t, theta=sol[:, 2])
 
     return list_routes

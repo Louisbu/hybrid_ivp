@@ -13,7 +13,7 @@ def optimize_route(
     y_start: float,
     x_end: float,
     y_end: float,
-    time_max: float = 2,
+    time_iter: float = 2,
     time_step: float = 0.1,
     angle_amplitude: float = np.pi,
     num_angles: int = 5,
@@ -48,11 +48,11 @@ def optimize_route(
         x-coordinate of the destinating position
     y_end : float
         y-coordinate of the destinating position
-    time_max : float, optional
+    time_iter : float, optional
         The total amount of time the ship is allowed to travel by at each iteration,
         by default 2
     time_step : float, optional
-        Number of steps to reach from 0 to time_max (equivalently, how "smooth" each path is),
+        Number of steps to reach from 0 to time_iter (equivalently, how "smooth" each path is),
         by default 0.1
     angle_amplitude : float, optional
         The search cone range in radians, by default pi
@@ -78,18 +78,23 @@ def optimize_route(
     # Position now
     x = x_start
     y = y_start
+    # Time now
+    t = 0
 
     # Compute minimum distance as the average distance
     # transversed during one loop
-    dist_min = vel * time_max if dist_min is None else dist_min
+    dist_min = vel * time_iter if dist_min is None else dist_min
 
     while dist_to_dest((x, y), (x_end, y_end)) > dist_min:
+        # Compute time at the end of this step
+        t_end = t + time_iter
 
         list_routes = solve_ode_zermelo(
             vectorfield,
             x,
             y,
-            time_max=time_max,
+            time_start=t,
+            time_end=t_end,
             time_step=time_step,
             cone_center=cone_center,
             angle_amplitude=angle_amplitude,
@@ -101,6 +106,7 @@ def optimize_route(
         idx_best = min_dist_to_dest(list_routes, (x_end, y_end))
         route_best = list_routes[idx_best]
         x, y = route_best.x[-1], route_best.y[-1]
+        t = t_end
 
         # Recompute the cone center
         dx = x_end - x
