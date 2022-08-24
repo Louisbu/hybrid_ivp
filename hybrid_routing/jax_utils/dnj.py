@@ -19,7 +19,9 @@ class DNJ:
         time_step: float = 0.1,
         discrete_vectorfield: bool = False,
     ):
+        self.vectorfield = vectorfield
         self.time_step = time_step
+        self.discrete_vectorfield = discrete_vectorfield
         h = time_step
         if discrete_vectorfield:
             get_current = vectorfield.get_current_discrete
@@ -31,20 +33,20 @@ class DNJ:
             cost = jnp.sqrt(((xp[0] - w[0]) ** 2 + (xp[1] - w[1]) ** 2))
             return cost
 
-        def discretized_cost_function(q0: jnp.array, q1: jnp.array) -> Iterable[float]:
-            L1 = cost_function(q0, (q1 - q0) / h)
-            L2 = cost_function(q1, 1 / h * (q1 - q0))
-            L_d = h / 2 * (L1**2 + L2**2)
-            return L_d
+        def discretized_cost_function(q0: jnp.array, q1: jnp.array) -> jnp.array:
+            l1 = cost_function(q0, (q1 - q0) / h)
+            l2 = cost_function(q1, (q1 - q0) / h)
+            ld = h / 2 * (jnp.power(l1, 2) + jnp.power(l2, 2))
+            return ld
 
-        D1Ld = grad(discretized_cost_function, argnums=0)
-        D2Ld = grad(discretized_cost_function, argnums=1)
-        D11Ld = hessian(discretized_cost_function, argnums=0)
-        D22Ld = hessian(discretized_cost_function, argnums=1)
+        d1ld = grad(discretized_cost_function, argnums=0)
+        d2ld = grad(discretized_cost_function, argnums=1)
+        d11ld = hessian(discretized_cost_function, argnums=0)
+        d22ld = hessian(discretized_cost_function, argnums=1)
 
         def optimize(qkm1: jnp.array, qk: jnp.array, qkp1: jnp.array) -> jnp.array:
-            b = -D2Ld(qkm1, qk) - D1Ld(qk, qkp1)
-            a = D22Ld(qkm1, qk) + D11Ld(qk, qkp1)
+            b = -d2ld(qkm1, qk) - d1ld(qk, qkp1)
+            a = d22ld(qkm1, qk) + d11ld(qk, qkp1)
             return jnp.linalg.solve(a, b)
 
         self.cost_function = cost_function
