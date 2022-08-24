@@ -27,4 +27,6 @@ class NoCurrent(Vectorfield):
         return 0
 
     def get_current(self, x: jnp.array, y: jnp.array) -> jnp.array:
-        return jnp.asarray([0.0, 0.0])
+        u = jnp.full_like(x, 0.0)
+        v = jnp.full_like(x, 0.0)
+        return jnp.stack([u, v])
