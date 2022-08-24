@@ -60,5 +60,10 @@ class RouteJax:
         pts = self.pts
         for iteration in range(num_iter):
             pts = dnj.optimize_distance(pts)
+        # TODO: Sometimes the DNJ produces NaNs, understand why and fix
+        # Temporal Solution: NaNs are replaced with last valid value
+        mask_nan = jnp.isnan(pts)
+        pts = pts.at[mask_nan].set(self.pts[mask_nan])
+        # Update the points of the route
         self.x = pts[:, 0]
         self.y = pts[:, 1]
