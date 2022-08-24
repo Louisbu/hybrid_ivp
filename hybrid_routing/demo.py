@@ -64,7 +64,7 @@ dict_vectorfields = dict(
 
 vectorfield_name = st.selectbox("Vector field:", sorted(dict_vectorfields.keys()))
 vectorfield: Vectorfield = dict_vectorfields[vectorfield_name]()
-choose_cost_function = st.selectbox("Optimize for:", ["fuel", "time"])
+optimize_for = st.selectbox("Optimize for:", ["time", "fuel"])
 
 ###############
 # Coordinates #
@@ -131,9 +131,7 @@ with row1col4:
 
 # DNJ
 time_step = time_max / 20
-dnj = DNJ(
-    vectorfield=vectorfield, time_step=time_step, optimize_for=choose_cost_function
-)
+dnj = DNJ(vectorfield=vectorfield, time_step=time_step, optimize_for=optimize_for)
 
 ###########
 # Buttons #
