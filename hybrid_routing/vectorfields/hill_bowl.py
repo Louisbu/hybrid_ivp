@@ -14,8 +14,10 @@ class HillBowl(Vectorfield):
     def __init__(self):
         pass
 
-    def get_current(self, x, y):
-        return jnp.asarray([x / x, jnp.sin(x**2 + y**2)])
+    def get_current(self, x: jnp.array, y: jnp.array) -> jnp.array:
+        return jnp.asarray(
+            [jnp.ones(x.shape), jnp.sin(jnp.power(x, 2) + jnp.power(y, 2))]
+        )
 
     def ode_zermelo(self, p, t, vel=jnp.float16(1)):
         x, y, theta = p
