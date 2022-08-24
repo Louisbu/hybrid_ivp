@@ -20,7 +20,7 @@ class Vectorfield(ABC):
         pass
 
     @abstractmethod
-    def get_current(self, x: float, y: float) -> jnp.array:
+    def get_current(self, x: jnp.array, y: jnp.array) -> jnp.array:
         pass
 
     """

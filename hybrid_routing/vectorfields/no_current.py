@@ -11,9 +11,6 @@ class NoCurrent(Vectorfield):
         dv/dx = 0,  dv/dy = 0
     """
 
-    def __init__(self):
-        pass
-
     def dvdx(self, x: float, y: float) -> float:
         return 0
 
@@ -26,5 +23,7 @@ class NoCurrent(Vectorfield):
     def dudy(self, x: float, y: float) -> float:
         return 0
 
-    def get_current(self, x: float, y: float) -> jnp.array:
-        return jnp.asarray([0.0, 0.0])
+    def get_current(self, x: jnp.array, y: jnp.array) -> jnp.array:
+        u = jnp.full_like(x, 0.0)
+        v = jnp.full_like(x, 0.0)
+        return jnp.stack([u, v])

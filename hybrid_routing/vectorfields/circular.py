@@ -12,9 +12,6 @@ class Circular(Vectorfield):
         dv/dx = -0.05,  dv/dy = 0
     """
 
-    def __init__(self):
-        pass
-
     def dvdx(self, x: float, y: float) -> float:
         return -0.05
 
@@ -27,5 +24,5 @@ class Circular(Vectorfield):
     def dudy(self, x: float, y: float) -> float:
         return 0.05
 
-    def get_current(self, x: float, y: float) -> jnp.array:
+    def get_current(self, x: jnp.array, y: jnp.array) -> jnp.array:
         return jnp.asarray([0.05 * (y + 1), 0.05 * (-x - 3)])
