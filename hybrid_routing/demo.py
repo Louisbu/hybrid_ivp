@@ -265,22 +265,23 @@ if do_run:
 if do_run_dnj:
     dist = dist_to_dest((x_start, y_start), (x_end, y_end))
     t_end = dist / vel
+    n_mean = int(t_end / time_step)
     list_routes = [
         RouteJax(
             x=jnp.linspace(x_start, x_end, n),
             y=jnp.linspace(y_start, y_end, n),
             t=jnp.linspace(0, t_end, n),
         )
-        for n in jnp.linspace(100, 500, num_angles).astype(int)
+        for n in [int(n_mean * 0.4), int(n_mean * 0.8), n_mean]
     ]
     for route in list_routes:
         line = plt.plot(route.x, route.y, color="green", linestyle="--", alpha=0.7)
         LIST_PLOT_TEMP.append(line)
     plot.pyplot(fig=fig)
     remove_plot_lines_temporal()
-    for iter in range(200):
+    for iter in range(8):
         for route in list_routes:
-            route.optimize_distance(dnj, num_iter=50)
+            route.optimize_distance(dnj, num_iter=500)
             line = plt.plot(route.x, route.y, color="green", linestyle="--", alpha=0.7)
             LIST_PLOT_TEMP.append(line)
         plot.pyplot(fig=fig)
