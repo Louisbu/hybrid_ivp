@@ -33,7 +33,7 @@ class FourVortices(Vectorfield):
     def __init__(self):
         pass
 
-    def get_current(self, x: float, y: float) -> jnp.array:
+    def get_current(self, x: jnp.array, y: jnp.array) -> jnp.array:
         field = 1.7 * (
             jnp.negative(R(2, 2, x, y))
             + jnp.negative(R(4, 4, x, y))
