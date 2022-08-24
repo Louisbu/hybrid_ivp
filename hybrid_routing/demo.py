@@ -252,8 +252,6 @@ if do_run:
     plot.pyplot(fig=fig)
     plt.close(fig)
 
-    st.markdown(route_dnj.t)
-
 ###########
 # Credits #
 ###########
