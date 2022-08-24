@@ -63,7 +63,11 @@ dict_vectorfields = dict(
 )
 
 vectorfield_name = st.selectbox("Vector field:", sorted(dict_vectorfields.keys()))
-vectorfield: Vectorfield = dict_vectorfields[vectorfield_name]()
+do_discretize = st.checkbox("Discretized", value=False)
+choose_cost_function = st.selectbox("Optimize for:", ["fuel", "time"])
+vectorfield: Vectorfield = dict_vectorfields[vectorfield_name](
+    x_min=X_MIN, x_max=X_MAX, y_min=Y_MIN, y_max=Y_MAX, step=0.1
+)
 
 ###############
 # Coordinates #
@@ -130,7 +134,12 @@ with row1col4:
 
 # DNJ
 time_step = time_max / 20
-dnj = DNJ(vectorfield=vectorfield, time_step=time_step)
+dnj = DNJ(
+    vectorfield=vectorfield,
+    time_step=time_step,
+    optimize=choose_cost_function,
+    discrete_vectorfield=do_discretize,
+)
 
 ###########
 # Buttons #
@@ -208,6 +217,7 @@ if do_run:
         angle_amplitude=angle * pi / 180,
         num_angles=num_angles,
         vel=vel,
+        discrete_vectorfield=do_discretize,
     )
     # Loop through optimization
     for list_routes_new in iter_optim:
