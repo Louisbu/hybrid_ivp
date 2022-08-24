@@ -23,7 +23,7 @@ class RouteJax:
     def pts(self):
         return jnp.stack([self.x, self.y], axis=1)
 
-    def append_points(self, x: jnp.array, y: jnp.array, t: jnp.array):
+    def append_points(self, x: jnp.array, y: jnp.array, t: Optional[jnp.array] = None):
         """Append new points to the end of the route
 
         Parameters
@@ -37,6 +37,7 @@ class RouteJax:
         """
         self.x = jnp.concatenate([self.x, jnp.atleast_1d(x)])
         self.y = jnp.concatenate([self.y, jnp.atleast_1d(y)])
+        t = t if t is not None else t + jnp.arange(0, len(x), 1)
         self.t = jnp.concatenate([self.t, jnp.atleast_1d(t)])
 
     def append_point_end(self, x: float, y: float, vel: float):
