@@ -35,7 +35,7 @@ def optimize_route(
     4) We then use the end point (x1, y1) on that path to compute the next set of paths
     by repeating the above algorithm.
     5) This function terminates till the last end point is within a neighbourhood of the
-    destination (defaults 3 * vel / 4).
+    destination (defaults vel * time_max).
 
     Parameters
     ----------

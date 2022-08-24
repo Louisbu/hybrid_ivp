@@ -7,7 +7,7 @@ from hybrid_routing.vectorfields.constant_current import ConstantCurrent
 from jax import grad, jacfwd, jacrev, jit, vmap
 from pyparsing import Iterable
 
-
+# defines the hessian of our functions
 def hessian(f: Callable, argnums: int = 0):
     return jacfwd(jacrev(f, argnums=argnums), argnums=argnums)
 
