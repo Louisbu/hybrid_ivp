@@ -10,12 +10,12 @@ class RouteJax:
         self,
         x: jnp.array,
         y: jnp.array,
-        t: jnp.array,
+        t: Optional[jnp.array] = None,
         theta: Optional[jnp.array] = None,
     ):
         self.x = jnp.atleast_1d(x)
         self.y = jnp.atleast_1d(y)
-        self.t = jnp.atleast_1d(t)
+        self.t = jnp.atleast_1d(t) if t is not None else jnp.arange(0, len(self.x), 1)
         assert len(self.x) == len(self.y) == len(self.t), "Array lengths are not equal"
         self.theta = jnp.atleast_1d(theta) if theta is not None else jnp.zeros_like(x)
 
