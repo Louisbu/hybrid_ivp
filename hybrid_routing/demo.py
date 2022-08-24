@@ -31,8 +31,10 @@ from hybrid_routing.vectorfields import *
 from hybrid_routing.vectorfields.base import Vectorfield
 from hybrid_routing.utils.distance import dist_to_dest
 
-X_MIN, X_MAX = -10.0, 20.0
-Y_MIN, Y_MAX = -10.0, 20.0
+X_MIN, X_MAX = 0.0, 6.0
+Y_MIN, Y_MAX = -1.0, 6.0
+X_START, Y_START = 0.0, 0.0
+X_END, Y_END = 6.0, 2.0
 NUM_ITER_DNJ = 50
 NUM_ITER_DNJ_END = 100
 
@@ -79,7 +81,7 @@ row1col1, row1col2, row1col3, row1col4 = st.columns(4)
 with row1col1:
     st.markdown("Start point")
     x_start = st.number_input(
-        "X", min_value=X_MIN, max_value=X_MAX, value=X_MIN + WIDTH / 4, key="x_start"
+        "X", min_value=X_MIN, max_value=X_MAX, value=X_START, key="x_start"
     )
     vel = st.slider(
         "Boat velocity",
@@ -94,7 +96,7 @@ with row1col1:
 with row1col2:
     st.markdown("(green)")
     y_start = st.number_input(
-        "Y", min_value=Y_MIN, max_value=Y_MAX, value=Y_MIN + HEIGHT / 4, key="y_start"
+        "Y", min_value=Y_MIN, max_value=Y_MAX, value=Y_START, key="y_start"
     )
     time_iter = st.slider(
         "Time between decisions",
@@ -109,7 +111,7 @@ with row1col2:
 with row1col3:
     st.markdown("End point")
     x_end = st.number_input(
-        "X", min_value=X_MIN, max_value=X_MAX, value=X_MIN + 3 * WIDTH / 4, key="x_end"
+        "X", min_value=X_MIN, max_value=X_MAX, value=X_END, key="x_end"
     )
     angle = st.slider(
         "Angle amplitude (degrees)",
@@ -124,7 +126,7 @@ with row1col3:
 with row1col4:
     st.markdown("(red)")
     y_end = st.number_input(
-        "Y", min_value=Y_MIN, max_value=Y_MAX, value=Y_MIN + 3 * HEIGHT / 4, key="y_end"
+        "Y", min_value=Y_MIN, max_value=Y_MAX, value=Y_END, key="y_end"
     )
     num_angles = st.slider(
         "Number of angles", min_value=3, max_value=40, value=6, step=1, key="num_angle"

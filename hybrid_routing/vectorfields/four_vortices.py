@@ -28,7 +28,8 @@ def R(a: float, b: float, x: float, y: float) -> Iterable[float]:
 
 
 class FourVortices(Vectorfield):
-    """Vectorfield example demonstrated in Figure 2 in https://arxiv.org/pdf/2109.05559.pdf, implements Vectorfield class."""
+    """Vectorfield example demonstrated in Figure 2 in https://arxiv.org/pdf/2109.05559.pdf,
+    implements Vectorfield class."""
 
     def get_current(self, x: jnp.array, y: jnp.array) -> jnp.array:
         field = 1.7 * (
