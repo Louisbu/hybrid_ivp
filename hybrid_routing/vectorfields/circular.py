@@ -12,9 +12,6 @@ class Circular(Vectorfield):
         dv/dx = -0.05,  dv/dy = 0
     """
 
-    def __init__(self):
-        pass
-
     def dvdx(self, x: float, y: float) -> float:
         return -0.05
 
