@@ -262,20 +262,25 @@ if do_run:
 ################
 
 if do_run_dnj:
-    dist = dist_to_dest((x_start, x_end), (y_start, y_end))
+    dist = dist_to_dest((x_start, y_start), (x_end, y_end))
     t_end = dist / vel
     n = int(t_end / time_step)
     x = jnp.linspace(x_start, x_end, n)
     y = jnp.linspace(y_start, y_end, n)
     t = jnp.linspace(0, t_end, n)
     route = RouteJax(x=x, y=y, t=t)
-    for iter in range(10):
-        route.optimize_distance(dnj, num_iter=10)
+    for iter in range(20):
+        route.optimize_distance(dnj, num_iter=200)
         fig = plt.figure()
         plot_vectorfield()
         plt.plot(route.x, route.y, color="green", linestyle="--", alpha=0.7)
         plot.pyplot(fig=fig)
         plt.close(fig)
+    fig = plt.figure()
+    plot_vectorfield()
+    plt.plot(route.x, route.y, color="green", linestyle="--", alpha=0.7)
+    plot.pyplot(fig=fig)
+    plt.close(fig)
 
 ###########
 # Credits #
