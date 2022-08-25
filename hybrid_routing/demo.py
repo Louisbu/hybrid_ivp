@@ -281,7 +281,6 @@ if do_run_dnj:
         y_pts.append(y_end)
         x = np.linspace(x_pts[:-1], x_pts[1:], 20).flatten()
         y = np.linspace(y_pts[:-1], y_pts[1:], 20).flatten()
-        print(x, "\n", y)
         list_routes[idx] = RouteJax(
             x=jnp.array(x),
             y=jnp.array(y),
