@@ -18,7 +18,7 @@ def run_dnj(
     num_routes: int = 3,
     num_segments: int = 3,
     num_iter: int = 500,
-)->List[RouteJax]:
+) -> List[RouteJax]:
     x_start, y_start = q0
     x_end, y_end = q1
     dist = dist_to_dest(q0, q1)
