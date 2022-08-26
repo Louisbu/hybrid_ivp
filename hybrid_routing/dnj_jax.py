@@ -113,8 +113,8 @@ def main(time_step: float = 0.1, num_points: int = 80, num_routes: int = 50):
         for route in list_routes:
             plt.plot(route.x, route.y, color="green")
         plt.title(f"Iterations: {gen_dnj.total_iter:05d}")
-        plt.xlim(0, 6)
-        plt.ylim(0, 6)
+        plt.xlim(-1, 7)
+        plt.ylim(-1, 7)
         fout = path_img / f"{idx:03d}.png"
         plt.savefig(fout)
         plt.close()
