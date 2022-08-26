@@ -18,24 +18,28 @@ def run_dnj(
     num_routes: int = 3,
     num_segments: int = 3,
     num_iter: int = 500,
-)->List[RouteJax]:
+) -> List[RouteJax]:
     x_start, y_start = q0
     x_end, y_end = q1
     dist = dist_to_dest(q0, q1)
     t_end = dist / vel
     list_routes: List[RouteJax] = [None] * num_routes
     for idx in range(num_routes):
-        x_pts = [x_start]
-        y_pts = [y_start]
+        x_pts = np.array([x_start])
+        y_pts = np.array([y_start])
         for j in range(num_segments):
             dx = x_end - x_pts[-1]
             dy = y_end - y_pts[-1]
             ang = np.arctan2(dy, dx)
             ang += np.random.uniform(-0.5, 0.5, 1) * angle_amplitude
-            x_pts.append(x_pts[-1] + np.cos(ang) * dist / (num_segments + 1))
-            y_pts.append(y_pts[-1] + np.sin(ang) * dist / (num_segments + 1))
-        x_pts.append(x_end)
-        y_pts.append(y_end)
+            x_pts = np.concatenate(
+                [x_pts, x_pts[-1] + np.cos(ang) * dist / (num_segments + 1)]
+            )
+            y_pts = np.concatenate(
+                [y_pts, y_pts[-1] + np.sin(ang) * dist / (num_segments + 1)]
+            )
+        x_pts = np.concatenate([x_pts, [x_end]])
+        y_pts = np.concatenate([y_pts, [y_end]])
         x = np.linspace(x_pts[:-1], x_pts[1:], int(num_points / num_segments)).flatten()
         y = np.linspace(y_pts[:-1], y_pts[1:], int(num_points / num_segments)).flatten()
         list_routes[idx] = RouteJax(
