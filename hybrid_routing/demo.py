@@ -266,14 +266,13 @@ if do_run_dnj:
         dnj,
         q0=(x_start, y_start),
         q1=(x_end, y_end),
-        vel=vel,
         angle_amplitude=angle * pi / 180,
         num_points=80,
         num_routes=num_angles,
         num_segments=4,
         num_iter=500,
     )
-    for iter in range(8):
+    for iter in range(10):
         list_routes: List[RouteJax] = next(generator_dnj)
         for route in list_routes:
             line = plt.plot(route.x, route.y, color="green", linestyle="--", alpha=0.7)

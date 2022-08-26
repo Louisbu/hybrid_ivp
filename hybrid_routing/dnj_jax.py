@@ -1,18 +1,15 @@
 from typing import List, Tuple
 
-import jax.numpy as jnp
 import numpy as np
 
 from hybrid_routing.jax_utils.dnj import DNJ
 from hybrid_routing.jax_utils.route import RouteJax
-from hybrid_routing.utils.distance import dist_to_dest
 
 
 def run_dnj(
     dnj: DNJ,
     q0: Tuple[float, float],
     q1: Tuple[float, float],
-    vel: float = 2.0,
     angle_amplitude: float = np.pi,
     num_points: int = 80,
     num_routes: int = 3,
@@ -21,32 +18,56 @@ def run_dnj(
 ) -> List[RouteJax]:
     x_start, y_start = q0
     x_end, y_end = q1
-    dist = dist_to_dest(q0, q1)
-    t_end = dist / vel
     list_routes: List[RouteJax] = [None] * num_routes
-    for idx in range(num_routes):
-        x_pts = np.array([x_start])
-        y_pts = np.array([y_start])
-        for j in range(num_segments):
+    # Randomly select number of segments per route
+    num_segments = np.random.random_integers(2, 5, num_routes)
+    for idx_route in range(num_routes):
+        # We first will choose the bounding points of each segment
+        x_pts = [x_start]
+        y_pts = [y_start]
+        dist = []
+        for idx_seg in range(num_segments[idx_route] - 1):
+            # The shooting direction is centered on the final destination
             dx = x_end - x_pts[-1]
             dy = y_end - y_pts[-1]
             ang = np.arctan2(dy, dx)
-            ang += np.random.uniform(-0.5, 0.5, 1) * angle_amplitude
-            x_pts = np.concatenate(
-                [x_pts, x_pts[-1] + np.cos(ang) * dist / (num_segments + 1)]
-            )
-            y_pts = np.concatenate(
-                [y_pts, y_pts[-1] + np.sin(ang) * dist / (num_segments + 1)]
-            )
-        x_pts = np.concatenate([x_pts, [x_end]])
-        y_pts = np.concatenate([y_pts, [y_end]])
-        x = np.linspace(x_pts[:-1], x_pts[1:], int(num_points / num_segments)).flatten()
-        y = np.linspace(y_pts[:-1], y_pts[1:], int(num_points / num_segments)).flatten()
-        list_routes[idx] = RouteJax(
-            x=jnp.array(x),
-            y=jnp.array(y),
-            t=jnp.linspace(0, t_end, len(x)),
-        )
+            # Randomly select angle deviation
+            ang_dev = np.random.uniform(-0.5, 0.5, 1) * angle_amplitude
+            # Randomly select the distance travelled
+            d = np.sqrt(dx**2 + dy**2) * np.random.uniform(0.1, 0.9, 1)
+            # Get the final point of the segment
+            x_pts.append(x_pts[-1] + d * np.cos(ang + ang_dev))
+            y_pts.append(y_pts[-1] + d * np.sin(ang + ang_dev))
+            dist.append(d)
+        # Append final point
+        dx = x_end - x_pts[-1]
+        dy = y_end - y_pts[-1]
+        d = np.sqrt(dx**2 + dy**2)
+        x_pts.append(x_end)
+        y_pts.append(y_end)
+        dist.append(d)
+        dist = np.array(dist).flatten()
+        # To ensure the points of the route are equi-distant,
+        # the number of points per segment will depend on its distance
+        # in relation to the total distance travelled
+        num_points_seg = (num_points * dist / dist.sum()).astype(int)
+        # Start generating the points
+        x = np.array([x_start])
+        y = np.array([y_start])
+        for idx_seg in range(num_segments[idx_route]):
+            x_new = np.linspace(
+                x_pts[idx_seg], x_pts[idx_seg + 1], num_points_seg[idx_seg]
+            ).flatten()
+            x = np.concatenate([x, x_new[1:]])
+            y_new = np.linspace(
+                y_pts[idx_seg], y_pts[idx_seg + 1], num_points_seg[idx_seg]
+            ).flatten()
+            y = np.concatenate([y, y_new[1:]])
+        # Add the route to the list
+        list_routes[idx_route] = RouteJax(x, y)
+    # Yield the original, straight piecewise routes
+    yield list_routes
+    # Optimize the routes via DNJ
     while True:
         for route in list_routes:
             route.optimize_distance(dnj, num_iter=num_iter)
