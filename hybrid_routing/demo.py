@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 import streamlit as st
 from PIL import Image
 
-from hybrid_routing.dnj_jax import run_dnj
+from hybrid_routing.dnj_jax import RunnerDNJ
 from hybrid_routing.jax_utils.dnj import DNJ
 from hybrid_routing.jax_utils.optimize import optimize_route
 from hybrid_routing.jax_utils.route import RouteJax
@@ -267,7 +267,7 @@ if do_run_dnj:
     num_iter_plot = int(3000 / num_angles)
     num_iter_gen = int(num_angles / 1.2)
     # Initialize generator
-    generator_dnj = run_dnj(
+    generator_dnj = RunnerDNJ(
         dnj,
         q0=(x_start, y_start),
         q1=(x_end, y_end),

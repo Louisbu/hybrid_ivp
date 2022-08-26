@@ -19,6 +19,7 @@ setuptools.setup(
     setup_requires=["setuptools_scm"],
     install_requires=[
         "black",
+        "imageio",
         "jax==0.3.14",
         "jaxlib==0.3.14",
         "matplotlib",
