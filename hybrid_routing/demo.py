@@ -14,21 +14,19 @@ The you can access the web in your PC by going to:
 http://localhost:8501
 """
 
-import numpy as np
 import inspect
 import sys
 from math import atan2, cos, pi, sin, sqrt
 from typing import List
 
-import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import streamlit as st
 from PIL import Image
 
+from hybrid_routing.dnj_jax import run_dnj
 from hybrid_routing.jax_utils.dnj import DNJ
 from hybrid_routing.jax_utils.optimize import optimize_route
 from hybrid_routing.jax_utils.route import RouteJax
-from hybrid_routing.utils.distance import dist_to_dest
 from hybrid_routing.vectorfields import *
 from hybrid_routing.vectorfields.base import Vectorfield
 
@@ -264,36 +262,20 @@ if do_run:
 ################
 
 if do_run_dnj:
-    dist = dist_to_dest((x_start, y_start), (x_end, y_end))
-    t_end = dist / vel
-    list_routes: List[RouteJax] = [None] * num_angles
-    for idx in range(len(list_routes)):
-        x_pts = [x_start]
-        y_pts = [y_start]
-        for j in range(3):
-            dx = x_end - x_pts[-1]
-            dy = y_end - y_pts[-1]
-            ang = atan2(dy, dx)
-            ang += np.random.uniform(-0.5, 0.5, 1) * angle * pi / 180
-            x_pts.append(x_pts[-1] + cos(ang) * dist / 4)
-            y_pts.append(y_pts[-1] + sin(ang) * dist / 4)
-        x_pts.append(x_end)
-        y_pts.append(y_end)
-        x = np.linspace(x_pts[:-1], x_pts[1:], 20).flatten()
-        y = np.linspace(y_pts[:-1], y_pts[1:], 20).flatten()
-        list_routes[idx] = RouteJax(
-            x=jnp.array(x),
-            y=jnp.array(y),
-            t=jnp.linspace(0, t_end, len(x)),
-        )
-    for route in list_routes:
-        line = plt.plot(route.x, route.y, color="green", linestyle="--", alpha=0.7)
-        LIST_PLOT_TEMP.append(line)
-    plot.pyplot(fig=fig)
-    remove_plot_lines_temporal()
+    generator_dnj = run_dnj(
+        dnj,
+        q0=(x_start, y_start),
+        q1=(x_end, y_end),
+        vel=vel,
+        angle_amplitude=angle * pi / 180,
+        num_points=80,
+        num_routes=num_angles,
+        num_segments=4,
+        num_iter=500,
+    )
     for iter in range(8):
+        list_routes: List[RouteJax] = next(generator_dnj)
         for route in list_routes:
-            route.optimize_distance(dnj, num_iter=500)
             line = plt.plot(route.x, route.y, color="green", linestyle="--", alpha=0.7)
             LIST_PLOT_TEMP.append(line)
         plot.pyplot(fig=fig)
