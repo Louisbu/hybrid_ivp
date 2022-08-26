@@ -265,7 +265,7 @@ if do_run_dnj:
     # The number of iterations between plots
     # is adjusted depending on the number of routes to explore
     num_iter_plot = int(3000 / num_angles)
-    num_iter_gen = int(num_angles / 2)
+    num_iter_gen = int(num_angles / 1.2)
     # Initialize generator
     generator_dnj = run_dnj(
         dnj,
