@@ -109,7 +109,7 @@ def main(time_step: float = 0.1, num_points: int = 80, num_routes: int = 50):
         list_routes = next(gen_dnj)
         # Accelerate the number of iterations
         gen_dnj.num_iter = idx + 2
-        vectorfield.plot(x_min=0, x_max=6, y_min=0, y_max=6)
+        vectorfield.plot(x_min=-1, x_max=7, y_min=-1, y_max=7)
         for route in list_routes:
             plt.plot(route.x, route.y, color="green")
         plt.title(f"Iterations: {gen_dnj.total_iter:05d}")
