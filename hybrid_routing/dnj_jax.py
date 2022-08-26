@@ -112,6 +112,7 @@ def main(time_step: float = 0.1, num_points: int = 80, num_routes: int = 50):
         vectorfield.plot(x_min=-1, x_max=7, y_min=-1, y_max=7)
         for route in list_routes:
             plt.plot(route.x, route.y, color="green")
+        plt.scatter([q0[0], q1[0]], [q0[1], q1[1]], c="red")
         plt.title(f"Iterations: {gen_dnj.total_iter:05d}")
         plt.xlim(-1, 7)
         plt.ylim(-1, 7)
