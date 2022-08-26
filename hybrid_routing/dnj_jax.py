@@ -13,7 +13,6 @@ def run_dnj(
     angle_amplitude: float = np.pi,
     num_points: int = 80,
     num_routes: int = 3,
-    num_segments: int = 3,
     num_iter: int = 500,
 ) -> List[RouteJax]:
     x_start, y_start = q0

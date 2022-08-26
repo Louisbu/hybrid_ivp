@@ -262,6 +262,11 @@ if do_run:
 ################
 
 if do_run_dnj:
+    # The number of iterations between plots
+    # is adjusted depending on the number of routes to explore
+    num_iter_plot = int(3000 / num_angles)
+    num_iter_gen = int(num_angles / 2)
+    # Initialize generator
     generator_dnj = run_dnj(
         dnj,
         q0=(x_start, y_start),
@@ -269,10 +274,9 @@ if do_run_dnj:
         angle_amplitude=angle * pi / 180,
         num_points=80,
         num_routes=num_angles,
-        num_segments=4,
-        num_iter=500,
+        num_iter=num_iter_plot,
     )
-    for iter in range(10):
+    for iter in range(num_iter_gen):
         list_routes: List[RouteJax] = next(generator_dnj)
         for route in list_routes:
             line = plt.plot(route.x, route.y, color="green", linestyle="--", alpha=0.7)
