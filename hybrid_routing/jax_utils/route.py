@@ -1,7 +1,6 @@
 from typing import Optional
 
 import jax.numpy as jnp
-from hybrid_routing.jax_utils.dnj import DNJ
 from hybrid_routing.utils.distance import dist_to_dest
 
 
@@ -56,16 +55,3 @@ class RouteJax:
         dist = dist_to_dest((self.x[-1], self.y[-1]), (x, y))
         t = dist / vel + self.t[-1]
         self.append_points(x, y, t)
-
-    def optimize_distance(self, dnj: DNJ, num_iter: int = 10):
-        pts = self.pts
-        for iteration in range(num_iter):
-            pts_old = pts
-            pts = dnj.optimize_distance(pts)
-            # TODO: Sometimes the DNJ produces NaNs, understand why and fix
-            # Temporal Solution: NaNs are replaced with last valid value
-            mask_nan = jnp.isnan(pts)
-            pts = pts.at[mask_nan].set(pts_old[mask_nan])
-        # Update the points of the route
-        self.x = pts[:, 0]
-        self.y = pts[:, 1]
