@@ -65,8 +65,11 @@ dict_vectorfields = dict(
 )
 
 vectorfield_name = st.selectbox("Vector field:", sorted(dict_vectorfields.keys()))
-optimize_for = st.selectbox("Optimize for:", ["time", "fuel"])
-do_discretize = st.checkbox("Discretized", value=False)
+rowvcol1, rowvcol2 = st.columns(2, gap="large")
+with rowvcol1:
+    do_discretize = st.checkbox("Discretized", value=False)
+with rowvcol2:
+    optimize_for = st.selectbox("Optimize for:", ["time", "fuel"])
 vectorfield: Vectorfield = dict_vectorfields[vectorfield_name](
     x_min=X_MIN, x_max=X_MAX, y_min=Y_MIN, y_max=Y_MAX, step=0.1
 )
