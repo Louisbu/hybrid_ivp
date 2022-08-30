@@ -60,7 +60,7 @@ def optimize_route(
     4) We then use the end point (x1, y1) on that path to compute the next set of paths
     by repeating the above algorithm.
     5) This function terminates till the last end point is within a neighbourhood of the
-    destination (defaults vel * time_max).
+    destination (defaults vel * time_end).
 
     Parameters
     ----------
@@ -125,7 +125,6 @@ def optimize_route(
             vectorfield,
             x,
             y,
-            time_start=t,
             time_end=t_end,
             time_step=time_step,
             cone_center=cone_center,

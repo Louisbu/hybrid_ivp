@@ -50,10 +50,10 @@ def solve_ode_zermelo(
         x-coordinate of the starting position
     y : float
         y-coordinate of the starting position
-    time_max : float, optional
+    time_end : float, optional
         The total amount of time the ship is allowed to travel by at each iteration, by default 2
     time_step : float, optional
-        Number of steps to reach from 0 to time_max (equivalently, how "smooth" each path is), by default 0.1
+        Number of steps to reach from 0 to time_end (equivalently, how "smooth" each path is), by default 0.1
     cone_center : float, optional
         Center of the cone of search in radians, by default 0
     angle_amplitude : float, optional

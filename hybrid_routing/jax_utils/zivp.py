@@ -77,7 +77,7 @@ def solve_discretized_zermelo(
     vectorfield: Vectorfield,
     x: float,
     y: float,
-    time_max: float = 2,
+    time_end: float = 2,
     time_step: float = 0.1,
     cone_center: float = 1.0,
     angle_amplitude: float = 0.4,
@@ -94,7 +94,7 @@ def solve_discretized_zermelo(
         x-coordinate of the starting position
     y : float
         y_coordinate of the starting position
-    time_max : float, optional
+    time_end : float, optional
         The total time for the ship to travel at each iteration, by default 2
     time_step : float, optional
         The "smoothness" of the path at each local iteration, by default 0.1
@@ -113,7 +113,7 @@ def solve_discretized_zermelo(
         Returns a list of all paths thats generated at each cone search. All points of the paths are of RouteJax object.
     """
 
-    t = np.arange(0, time_max, time_step)
+    t = np.arange(0, time_end, time_step)
     # Define the search cone
     delta = 1e-4 if angle_amplitude <= 1e-4 else angle_amplitude / 2
     if num_angles > 1:
