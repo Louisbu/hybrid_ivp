@@ -102,17 +102,20 @@ class DNJ:
         route.y = pts[:, 1]
 
 
-class RunnerDNJ:
+class DNJRandomGuess:
     def __init__(
         self,
-        dnj: DNJ,
+        vectorfield: Vectorfield,
         q0: Tuple[float, float],
         q1: Tuple[float, float],
+        time_step: float = 0.1,
+        optimize_for: str = "fuel",
         angle_amplitude: float = np.pi,
         num_points: int = 80,
         num_routes: int = 3,
         num_iter: int = 500,
     ):
+        """Initializes a DNJ with random guesses"""
         x_start, y_start = q0
         x_end, y_end = q1
         list_routes: List[RouteJax] = [None] * num_routes
@@ -163,7 +166,9 @@ class RunnerDNJ:
             # Add the route to the list
             list_routes[idx_route] = RouteJax(x, y)
         # Store parameters
-        self.dnj = dnj
+        self.dnj = DNJ(
+            vectorfield=vectorfield, time_step=time_step, optimize_for=optimize_for
+        )
         self.list_routes = list_routes
         self.num_iter = num_iter
         self.total_iter: int = 0

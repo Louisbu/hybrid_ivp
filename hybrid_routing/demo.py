@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 import streamlit as st
 from PIL import Image
 
-from hybrid_routing.jax_utils.dnj import RunnerDNJ
+from hybrid_routing.jax_utils.dnj import DNJRandomGuess
 from hybrid_routing.jax_utils.dnj import DNJ
 from hybrid_routing.jax_utils.optimize import optimize_route
 from hybrid_routing.jax_utils.route import RouteJax
@@ -267,17 +267,19 @@ if do_run_dnj:
     num_iter_plot = int(3000 / num_angles)
     num_iter_gen = int(num_angles / 1.2)
     # Initialize generator
-    generator_dnj = RunnerDNJ(
-        dnj,
+    dnj_random_guess = DNJRandomGuess(
+        vectorfield=vectorfield,
         q0=(x_start, y_start),
         q1=(x_end, y_end),
+        time_step=time_step,
+        optimize_for=optimize_for,
         angle_amplitude=angle * pi / 180,
         num_points=80,
         num_routes=num_angles,
         num_iter=num_iter_plot,
     )
     for iter in range(num_iter_gen):
-        list_routes: List[RouteJax] = next(generator_dnj)
+        list_routes: List[RouteJax] = next(dnj_random_guess)
         for route in list_routes:
             line = plt.plot(route.x, route.y, color="green", linestyle="--", alpha=0.7)
             LIST_PLOT_TEMP.append(line)
