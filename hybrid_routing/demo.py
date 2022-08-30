@@ -232,7 +232,7 @@ if do_run:
             plt.plot(route.x, route.y, color=color, linestyle="-", alpha=0.4)
 
         # Apply DNJ to the optimal route
-        route_dnj.optimize_distance(dnj, num_iter=NUM_ITER_DNJ)
+        dnj.optimize_route(route_dnj, num_iter=NUM_ITER_DNJ)
         # Plot both raw and DNJ optimized routes
         line_raw = plt.plot(
             route_raw.x, route_raw.y, color="orange", linestyle="--", alpha=0.6
@@ -249,7 +249,7 @@ if do_run:
     t_end = 0
     route_raw.append_point_end(x=x_end, y=y_end, vel=vel)
     route_dnj.append_point_end(x=x_end, y=y_end, vel=vel)
-    route_dnj.optimize_distance(dnj, num_iter=NUM_ITER_DNJ_END)
+    dnj.optimize_route(route, num_iter=NUM_ITER_DNJ_END)
 
     # Plot both raw and DNJ optimized routes
     plt.plot(route_raw.x, route_raw.y, color="orange", linestyle="--", alpha=0.6)

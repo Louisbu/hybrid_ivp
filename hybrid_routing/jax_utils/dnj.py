@@ -2,6 +2,7 @@ from functools import partial
 from typing import Callable
 
 import jax.numpy as jnp
+from hybrid_routing.jax_utils.route import RouteJax
 from hybrid_routing.vectorfields.base import Vectorfield
 from jax import grad, jacfwd, jacrev, jit, vmap
 
@@ -76,3 +77,16 @@ class DNJ:
         pts_new = jnp.copy(pts)
         q = self.optim_vect(pts[:-2], pts[1:-1], pts[2:])
         return pts_new.at[1:-1].set(damping * q + pts[1:-1])
+
+    def optimize_route(self, route: RouteJax, num_iter: int = 10):
+        pts = route.pts
+        for iteration in range(num_iter):
+            pts_old = pts
+            pts = self.optimize_distance(pts)
+            # TODO: Sometimes the DNJ produces NaNs, understand why and fix
+            # Temporal Solution: NaNs are replaced with last valid value
+            mask_nan = jnp.isnan(pts)
+            pts = pts.at[mask_nan].set(pts_old[mask_nan])
+        # Update the points of the route
+        route.x = pts[:, 0]
+        route.y = pts[:, 1]

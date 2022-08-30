@@ -80,7 +80,7 @@ class RunnerDNJ:
 
     def __next__(self):
         for route in self.list_routes:
-            route.optimize_distance(self.dnj, num_iter=self.num_iter)
+            self.dnj.optimize_route(route, num_iter=self.num_iter)
         self.total_iter += self.num_iter
         return self.list_routes
 
