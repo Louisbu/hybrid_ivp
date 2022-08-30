@@ -34,6 +34,8 @@ X_MIN, X_MAX = 0.0, 6.0
 Y_MIN, Y_MAX = -1.0, 6.0
 X_START, Y_START = 0.0, 0.0
 X_END, Y_END = 6.0, 2.0
+VEL_MIN, VEL, VEL_MAX = 0.1, 1.0, 2.0
+TIME_MIN, TIME, TIME_MAX = 0.1, 0.5, 2.0
 NUM_ITER_DNJ = 50
 NUM_ITER_DNJ_END = 500
 
@@ -90,12 +92,7 @@ with row1col1:
         "X", min_value=X_MIN, max_value=X_MAX, value=X_START, key="x_start"
     )
     vel = st.slider(
-        "Boat velocity",
-        min_value=0.5,
-        max_value=5.0,
-        value=1.0,
-        step=0.1,
-        key="velocity",
+        "Boat velocity", min_value=VEL_MIN, max_value=VEL_MAX, value=VEL, key="velocity"
     )
 
 
@@ -106,10 +103,9 @@ with row1col2:
     )
     time_iter = st.slider(
         "Time between decisions",
-        min_value=0.1,
-        max_value=3.0,
-        value=1.0,
-        step=0.1,
+        min_value=TIME_MIN,
+        max_value=TIME_MAX,
+        value=TIME,
         key="time",
     )
 
