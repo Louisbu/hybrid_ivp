@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 import streamlit as st
 from PIL import Image
 
-from hybrid_routing.dnj_jax import RunnerDNJ
+from hybrid_routing.jax_utils.dnj import RunnerDNJ
 from hybrid_routing.jax_utils.dnj import DNJ
 from hybrid_routing.jax_utils.optimize import optimize_route
 from hybrid_routing.jax_utils.route import RouteJax
