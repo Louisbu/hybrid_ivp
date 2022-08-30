@@ -2,7 +2,7 @@ from typing import List, Optional, Tuple
 
 import numpy as np
 from hybrid_routing.jax_utils.route import RouteJax
-from hybrid_routing.jax_utils.zivp import solve_ode_zermelo
+from hybrid_routing.jax_utils.zivp import solve_discretized_zermelo, solve_ode_zermelo
 from hybrid_routing.utils.distance import dist_to_dest
 from hybrid_routing.vectorfields.base import Vectorfield
 
@@ -44,6 +44,7 @@ def optimize_route(
     num_angles: int = 5,
     vel: float = 5,
     dist_min: Optional[float] = None,
+    discrete_vectorfield: bool = False,
 ) -> List[RouteJax]:
 
     """
@@ -59,7 +60,7 @@ def optimize_route(
     4) We then use the end point (x1, y1) on that path to compute the next set of paths
     by repeating the above algorithm.
     5) This function terminates till the last end point is within a neighbourhood of the
-    destination (defaults 3 * vel / 4).
+    destination (defaults vel * time_max).
 
     Parameters
     ----------
@@ -110,11 +111,17 @@ def optimize_route(
     # transversed during one loop
     dist_min = vel * time_iter if dist_min is None else dist_min
 
+    # Choose solving method depends on whether wnats discrete_vectorfield
+    if discrete_vectorfield:
+        fun = solve_discretized_zermelo
+    else:
+        fun = solve_ode_zermelo
+
     while dist_to_dest((x, y), (x_end, y_end)) > dist_min:
         # Compute time at the end of this step
         t_end = t + time_iter
 
-        list_routes = solve_ode_zermelo(
+        list_routes = fun(
             vectorfield,
             x,
             y,

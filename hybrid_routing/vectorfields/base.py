@@ -16,8 +16,32 @@ class Vectorfield(ABC):
         pass upon initialization, returns the current in tuples `(u, v)` given the position of the boat `(x, y)`
     """
 
-    def __init__(self):
-        pass
+    def __init__(
+        self,
+        x_min: float = 0,
+        x_max: float = 10,
+        y_min: float = 0,
+        y_max: float = 10,
+        step: float = 1,
+    ):
+        """
+        Parameters
+        ----------
+        x_min : float, optional
+            Minimum x-value of the grid, by default 0
+        x_max : float, optional
+            Maximum x-value of the grid, by default 10
+        y_min : float, optional
+            Minimum y-value of the grid, by default 0
+        y_max : float, optional
+            Maximum y_value of the grid, by default 10
+        step : float, optional
+            "Fineness" of the grid, by default 1
+        """
+        self.arr_x = jnp.arange(x_min, x_max, step)
+        self.arr_y = jnp.arange(y_min, y_max, step)
+        mat_x, mat_y = jnp.meshgrid(self.arr_x, self.arr_y)
+        self.u, self.v = self.get_current(mat_x, mat_y)
 
     @abstractmethod
     def get_current(self, x: jnp.array, y: jnp.array) -> jnp.array:
@@ -95,13 +119,32 @@ class Vectorfield(ABC):
 
         return [dxdt, dydt, dthetadt]
 
+    def get_current_discrete(self, x: jnp.array, y: jnp.array) -> jnp.array:
+        """Takes the current values (u,v) at a given point (x,y) on the grid.
+
+        Parameters
+        ----------
+        x : jnp.array
+            x-coordinate of the ship
+        y : jnp.array
+            y-coordinate of the ship
+
+        Returns
+        -------
+        jnp.array
+            The current's velocity in x and y direction (u, v)
+        """
+        idx = jnp.argmin(jnp.abs(self.arr_x - x))
+        idy = jnp.argmin(jnp.abs(self.arr_y - y))
+        return jnp.asarray([self.u[idx, idy], self.v[idx, idy]])
+
     def plot(
         self,
-        x_min: float = 0,
-        x_max: float = 125,
-        y_min: float = 0,
-        y_max: float = 125,
-        step: float = 20,
+        x_min: float = -4,
+        x_max: float = 4,
+        y_min: float = -4,
+        y_max: float = 4,
+        step: float = 1,
     ):
         """Plots the vector field
 
@@ -116,10 +159,8 @@ class Vectorfield(ABC):
         y_max : float, optional
             Up limit of Y axes, by default 125
         step : float, optional
-            Distance between points to plot, by default 10
+            Distance between points to plot, by default .5
         """
-        x, y = np.meshgrid(
-            np.linspace(x_min, x_max, step), np.linspace(y_min, y_max, step)
-        )
+        x, y = np.meshgrid(np.arange(x_min, x_max, step), np.arange(y_min, y_max, step))
         u, v = self.get_current(x, y)
         plt.quiver(x, y, u, v)

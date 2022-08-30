@@ -6,6 +6,7 @@ from hybrid_routing.vectorfields.base import Vectorfield
 from jax import grad, jacfwd, jacrev, jit, vmap
 
 
+# defines the hessian of our functions
 def hessian(f: Callable, argnums: int = 0):
     return jacfwd(jacrev(f, argnums=argnums), argnums=argnums)
 
@@ -15,23 +16,29 @@ class DNJ:
         self,
         vectorfield: Vectorfield,
         time_step: float = 0.1,
+        discrete_vectorfield: bool = False,
         optimize_for: str = "fuel",
     ):
         self.vectorfield = vectorfield
         self.time_step = time_step
+        self.discrete_vectorfield = discrete_vectorfield
         h = time_step
+        if discrete_vectorfield:
+            get_current = vectorfield.get_current_discrete
+        else:
+            get_current = vectorfield.get_current
 
         if optimize_for == "fuel":
 
             def cost_function(x: jnp.array, xp: jnp.array) -> jnp.array:
-                w = vectorfield.get_current(x[0], x[1])
+                w = get_current(x[0], x[1])
                 cost = jnp.sqrt((xp[0] - w[0]) ** 2 + (xp[1] - w[1]) ** 2)
                 return cost
 
         elif optimize_for == "time":
 
             def cost_function(x: jnp.array, xp: jnp.array) -> jnp.array:
-                w = vectorfield.get_current(x[0], x[1])
+                w = get_current(x[0], x[1])
                 a = 1 - (w[0] ** 2 + w[1] ** 2)
                 cost = (
                     jnp.sqrt(
