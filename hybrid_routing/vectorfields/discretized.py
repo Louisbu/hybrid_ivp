@@ -7,9 +7,12 @@ from hybrid_routing.vectorfields.base import Vectorfield
 from scipy.interpolate._rgi import RegularGridInterpolator
 
 
-def build_interp_fun(interp: RegularGridInterpolator) -> Callable:
-    grid_interp = jnp.array(interp.grid)
-    values_interp = jnp.array(interp.values)
+def build_interp_fun(
+    interp_u: RegularGridInterpolator, interp_v: RegularGridInterpolator
+) -> Callable:
+    grid_interp = jnp.array(interp_u.grid)
+    values_u = jnp.array(interp_u.values)
+    values_v = jnp.array(interp_v.values)
 
     def interp_fun(x: jnp.array, y: jnp.array) -> jnp.array:
         xi = jnp.stack((x, y))
@@ -40,18 +43,20 @@ def build_interp_fun(interp: RegularGridInterpolator) -> Callable:
         xi = xi.reshape(-1, xi_shape[-1])
 
         # slice for broadcasting over trailing dimensions in self.values
-        vslice = (slice(None),) + (None,) * (values_interp.ndim - len(indices))
+        vslice = (slice(None),) + (None,) * (values_u.ndim - len(indices))
 
         # find relevant values
         # each i and i+1 represents a edge
         edges = itertools.product(*[[i, i + 1] for i in indices])
-        values = 0.0
+        u = 0.0
+        v = 0.0
         for edge_indices in edges:
             weight = 1.0
             for ei, i, yi in zip(edge_indices, indices, norm_distances):
                 weight *= jnp.where(ei == i, 1 - yi, yi)
-            values += jnp.asarray(values_interp[edge_indices]) * weight[vslice]
-        return jnp.array(values)
+            u += jnp.asarray(values_u[edge_indices]) * weight[vslice]
+            v += jnp.asarray(values_v[edge_indices]) * weight[vslice]
+        return jnp.array([u, v])
 
     return interp_fun
 
@@ -68,8 +73,7 @@ class Discretized(Vectorfield):
         interp_v = RegularGridInterpolator(
             (self.arr_x, self.arr_y), self.v, method="linear"
         )
-        self.interp_u = build_interp_fun(interp_u)
-        self.interp_v = build_interp_fun(interp_v)
+        self.interp = build_interp_fun(interp_u, interp_v)
 
     def get_current(self, x: jnp.array, y: jnp.array) -> jnp.array:
-        return self.interp_u(x, y), self.interp_v(x, y)
+        return self.interp(x, y)
