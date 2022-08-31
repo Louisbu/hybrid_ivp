@@ -6,4 +6,5 @@ from hybrid_routing.vectorfields.sink import Sink
 from hybrid_routing.vectorfields.source import Source
 from hybrid_routing.vectorfields.four_vortices import FourVortices
 from hybrid_routing.vectorfields.swirlys import Swirlys
+
 # from hybrid_routing.vectorfields.saddle import Saddle
