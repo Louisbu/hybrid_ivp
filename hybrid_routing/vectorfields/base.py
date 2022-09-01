@@ -119,24 +119,8 @@ class Vectorfield(ABC):
 
         return [dxdt, dydt, dthetadt]
 
-    def get_current_discrete(self, x: jnp.array, y: jnp.array) -> jnp.array:
-        """Takes the current values (u,v) at a given point (x,y) on the grid.
-
-        Parameters
-        ----------
-        x : jnp.array
-            x-coordinate of the ship
-        y : jnp.array
-            y-coordinate of the ship
-
-        Returns
-        -------
-        jnp.array
-            The current's velocity in x and y direction (u, v)
-        """
-        idx = jnp.argmin(jnp.abs(self.arr_x - x))
-        idy = jnp.argmin(jnp.abs(self.arr_y - y))
-        return jnp.asarray([self.u[idx, idy], self.v[idx, idy]])
+    def discretize(self) -> "VectorfieldDiscrete":
+        return VectorfieldDiscrete(self)
 
     def plot(
         self,
@@ -165,3 +149,28 @@ class Vectorfield(ABC):
         x, y = np.meshgrid(np.arange(x_min, x_max, step), np.arange(y_min, y_max, step))
         u, v = self.get_current(x, y)
         plt.quiver(x, y, u, v, color=color)
+
+
+class VectorfieldDiscrete(Vectorfield):
+    def __init__(self, vectorfield: Vectorfield):
+        # Copy all atributes of the original vectorfield into this one
+        self.__dict__.update(vectorfield.__dict__)
+
+    def get_current(self, x: jnp.array, y: jnp.array) -> jnp.array:
+        """Takes the current values (u,v) at a given point (x,y) on the grid.
+
+        Parameters
+        ----------
+        x : jnp.array
+            x-coordinate of the ship
+        y : jnp.array
+            y-coordinate of the ship
+
+        Returns
+        -------
+        jnp.array
+            The current's velocity in x and y direction (u, v)
+        """
+        idx = jnp.argmin(jnp.abs(self.arr_x - x))
+        idy = jnp.argmin(jnp.abs(self.arr_y - y))
+        return jnp.asarray([self.u[idx, idy], self.v[idx, idy]])

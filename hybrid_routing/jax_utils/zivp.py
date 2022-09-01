@@ -126,6 +126,9 @@ def solve_discretized_zermelo(
         thetas = [cone_center]
     list_routes: List[RouteJax] = [None] * len(thetas)
 
+    # Discretize vectorfield
+    vf_discrete = vectorfield.discretize()
+
     for idx, theta in enumerate(thetas):
         # Initialize list of (x, y) coordinates
         list_x, list_y = [x] * len(t), [y] * len(t)
@@ -138,7 +141,7 @@ def solve_discretized_zermelo(
         # Loop through the time steps
         for idx2, _ in enumerate(t):
             # Compute the displacement, affected by the vectorfield
-            vf_x, vf_y = vectorfield.get_current_discrete(x_temp, y_temp)
+            vf_x, vf_y = vf_discrete.get_current(x_temp, y_temp)
             dx = (v_x + vf_x) * time_step
             dy = (v_y + vf_y) * time_step
             x_temp += dx
