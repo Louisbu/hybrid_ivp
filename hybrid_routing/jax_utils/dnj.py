@@ -18,15 +18,11 @@ class DNJ:
         self,
         vectorfield: Vectorfield,
         time_step: float = 0.1,
-        discrete_vectorfield: bool = False,
         optimize_for: str = "fuel",
     ):
-        self.time_step = time_step
-        self.discrete_vectorfield = discrete_vectorfield
-        h = time_step
-        if discrete_vectorfield:
-            vectorfield = vectorfield.discretize()
         self.vectorfield = vectorfield
+        self.time_step = time_step
+        h = time_step
 
         if optimize_for == "fuel":
 
@@ -52,16 +48,16 @@ class DNJ:
         else:
             raise ValueError("unrecognized cost function")
 
-        def discretized_cost_function(q0: jnp.array, q1: jnp.array) -> jnp.array:
+        def cost_function_discretized(q0: jnp.array, q1: jnp.array) -> jnp.array:
             l1 = cost_function(q0, (q1 - q0) / h)
             l2 = cost_function(q1, (q1 - q0) / h)
             ld = h / 2 * (l1**2 + l2**2)
             return ld
 
-        d1ld = grad(discretized_cost_function, argnums=0)
-        d2ld = grad(discretized_cost_function, argnums=1)
-        d11ld = hessian(discretized_cost_function, argnums=0)
-        d22ld = hessian(discretized_cost_function, argnums=1)
+        d1ld = grad(cost_function_discretized, argnums=0)
+        d2ld = grad(cost_function_discretized, argnums=1)
+        d11ld = hessian(cost_function_discretized, argnums=0)
+        d22ld = hessian(cost_function_discretized, argnums=1)
 
         def optimize(qkm1: jnp.array, qk: jnp.array, qkp1: jnp.array) -> jnp.array:
             b = -d2ld(qkm1, qk) - d1ld(qk, qkp1)
@@ -69,7 +65,7 @@ class DNJ:
             return jnp.linalg.solve(a, b)
 
         self.cost_function = cost_function
-        self.discretized_cost_function = discretized_cost_function
+        self.cost_function_discretized = cost_function_discretized
         self.optim_vect = vmap(optimize, in_axes=(0, 0, 0), out_axes=0)
 
     def __hash__(self):

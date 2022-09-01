@@ -16,32 +16,7 @@ class Vectorfield(ABC):
         pass upon initialization, returns the current in tuples `(u, v)` given the position of the boat `(x, y)`
     """
 
-    def __init__(
-        self,
-        x_min: float = 0,
-        x_max: float = 10,
-        y_min: float = 0,
-        y_max: float = 10,
-        step: float = 1,
-    ):
-        """
-        Parameters
-        ----------
-        x_min : float, optional
-            Minimum x-value of the grid, by default 0
-        x_max : float, optional
-            Maximum x-value of the grid, by default 10
-        y_min : float, optional
-            Minimum y-value of the grid, by default 0
-        y_max : float, optional
-            Maximum y_value of the grid, by default 10
-        step : float, optional
-            "Fineness" of the grid, by default 1
-        """
-        self.arr_x = jnp.arange(x_min, x_max, step)
-        self.arr_y = jnp.arange(y_min, y_max, step)
-        mat_x, mat_y = jnp.meshgrid(self.arr_x, self.arr_y)
-        self.u, self.v = self.get_current(mat_x, mat_y)
+    is_discrete = False
 
     @abstractmethod
     def get_current(self, x: jnp.array, y: jnp.array) -> jnp.array:
@@ -119,8 +94,37 @@ class Vectorfield(ABC):
 
         return [dxdt, dydt, dthetadt]
 
-    def discretize(self) -> "VectorfieldDiscrete":
-        return VectorfieldDiscrete(self)
+    def discretize(
+        self,
+        x_min: float = 0,
+        x_max: float = 10,
+        y_min: float = 0,
+        y_max: float = 10,
+        step: float = 1,
+    ) -> "VectorfieldDiscrete":
+        """Discretizes the vectorfield
+
+        Parameters
+        ----------
+        x_min : float, optional
+            Minimum x-value of the grid, by default 0
+        x_max : float, optional
+            Maximum x-value of the grid, by default 10
+        y_min : float, optional
+            Minimum y-value of the grid, by default 0
+        y_max : float, optional
+            Maximum y_value of the grid, by default 10
+        step : float, optional
+            "Fineness" of the grid, by default 1
+
+        Returns
+        -------
+        VectorfieldDiscrete
+            Discretized vectorfield
+        """
+        return VectorfieldDiscrete(
+            self, x_min=x_min, x_max=x_max, y_min=y_min, y_max=y_max, step=step
+        )
 
     def plot(
         self,
@@ -152,9 +156,26 @@ class Vectorfield(ABC):
 
 
 class VectorfieldDiscrete(Vectorfield):
-    def __init__(self, vectorfield: Vectorfield):
+    is_discrete = True
+
+    def __init__(
+        self,
+        vectorfield: Vectorfield,
+        x_min: float = 0,
+        x_max: float = 10,
+        y_min: float = 0,
+        y_max: float = 10,
+        step: float = 1,
+    ):
         # Copy all atributes of the original vectorfield into this one
         self.__dict__.update(vectorfield.__dict__)
+        self.arr_x = jnp.arange(x_min, x_max, step)
+        self.arr_y = jnp.arange(y_min, y_max, step)
+        mat_x, mat_y = jnp.meshgrid(self.arr_x, self.arr_y)
+        self.u, self.v = vectorfield.get_current(mat_x, mat_y)
+        # Define methods to get closest indexes
+        self.closest_idx = jnp.vectorize(lambda x: jnp.argmin(jnp.abs(self.arr_x - x)))
+        self.closest_idy = jnp.vectorize(lambda y: jnp.argmin(jnp.abs(self.arr_y - y)))
 
     def get_current(self, x: jnp.array, y: jnp.array) -> jnp.array:
         """Takes the current values (u,v) at a given point (x,y) on the grid.
@@ -171,6 +192,5 @@ class VectorfieldDiscrete(Vectorfield):
         jnp.array
             The current's velocity in x and y direction (u, v)
         """
-        idx = jnp.argmin(jnp.abs(self.arr_x - x))
-        idy = jnp.argmin(jnp.abs(self.arr_y - y))
+        idx, idy = self.closest_idx(x), self.closest_idy(y)
         return jnp.asarray([self.u[idx, idy], self.v[idx, idy]])
