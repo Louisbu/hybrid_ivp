@@ -122,9 +122,12 @@ class Vectorfield(ABC):
         VectorfieldDiscrete
             Discretized vectorfield
         """
-        return VectorfieldDiscrete(
-            self, x_min=x_min, x_max=x_max, y_min=y_min, y_max=y_max, step=step
-        )
+        if self.is_discrete:
+            return self
+        else:
+            return VectorfieldDiscrete(
+                self, x_min=x_min, x_max=x_max, y_min=y_min, y_max=y_max, step=step
+            )
 
     def plot(
         self,
@@ -172,7 +175,8 @@ class VectorfieldDiscrete(Vectorfield):
         self.arr_x = jnp.arange(x_min, x_max, step)
         self.arr_y = jnp.arange(y_min, y_max, step)
         mat_x, mat_y = jnp.meshgrid(self.arr_x, self.arr_y)
-        self.u, self.v = vectorfield.get_current(mat_x, mat_y)
+        u, v = vectorfield.get_current(mat_x, mat_y)
+        self.u, self.v = u.T, v.T
         # Define methods to get closest indexes
         self.closest_idx = jnp.vectorize(lambda x: jnp.argmin(jnp.abs(self.arr_x - x)))
         self.closest_idy = jnp.vectorize(lambda y: jnp.argmin(jnp.abs(self.arr_y - y)))
