@@ -125,6 +125,7 @@ def optimize_route(
             vectorfield,
             x,
             y,
+            time_start=t,
             time_end=t_end,
             time_step=time_step,
             cone_center=cone_center,

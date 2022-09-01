@@ -77,6 +77,7 @@ def solve_discretized_zermelo(
     vectorfield: Vectorfield,
     x: float,
     y: float,
+    time_start: float = 0,
     time_end: float = 2,
     time_step: float = 0.1,
     cone_center: float = 1.0,
@@ -113,7 +114,7 @@ def solve_discretized_zermelo(
         Returns a list of all paths thats generated at each cone search. All points of the paths are of RouteJax object.
     """
 
-    t = np.arange(0, time_end, time_step)
+    t = np.arange(time_start, time_end, time_step)
     # Define the search cone
     delta = 1e-4 if angle_amplitude <= 1e-4 else angle_amplitude / 2
     if num_angles > 1:
