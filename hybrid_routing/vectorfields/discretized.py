@@ -62,18 +62,46 @@ def build_interp_fun(
 
 
 class Discretized(Vectorfield):
-    def __init__(self, vectorfield: Vectorfield):
+    def __init__(self, vectorfield: Vectorfield, kernel: str):
         self.arr_x = vectorfield.arr_x
         self.arr_y = vectorfield.arr_y
+        self.step_x = np.mean(np.diff(self.arr_x))
+        self.step_y = np.mean(np.diff(self.arr_y))
         self.u = vectorfield.u
         self.v = vectorfield.v
         interp_u = RegularGridInterpolator(
-            (self.arr_x, self.arr_y), self.u, method="linear"
+            (self.arr_x, self.arr_y), self.u, kernel=kernel
         )
         interp_v = RegularGridInterpolator(
-            (self.arr_x, self.arr_y), self.v, method="linear"
+            (self.arr_x, self.arr_y), self.v, kernel=kernel
         )
         self.interp = build_interp_fun(interp_u, interp_v)
 
     def get_current(self, x: jnp.array, y: jnp.array) -> jnp.array:
         return self.interp(x, y)
+
+    def dudx(self, x: jnp.array, y: jnp.array) -> jnp.array:
+        return (
+            -self.interp(x + 2 * self.step_x, y)[0]
+            + 8 * self.interp(x + self.step_x, y)[0]
+            - 8 * self.interp(x - self.step_x, y)[0]
+            + self.interp(x - 2 * self.step_x, y)[0]
+        ) / (12 * self.step_x)
+
+    def dudy(self, x: jnp.array, y: jnp.array) -> jnp.array:
+        u_yh = self.interp(x, y + self.step_y)
+        u_y = self.interp(x, y)
+
+        return (u_yh[0] - u_y[0]) / self.step_y
+
+    def dvdx(self, x: jnp.array, y: jnp.array) -> jnp.array:
+        v_xh = self.interp(x + self.step_x, y)
+        v_x = self.interp(x, y)
+
+        return (v_xh[1] - v_x[1]) / self.step_x
+
+    def dvdy(self, x: jnp.array, y: jnp.array) -> jnp.array:
+        v_yh = self.interp(x, y + self.step_y)
+        v_y = self.interp(x, y)
+
+        return (v_yh[1] - v_y[1]) / self.step_y
