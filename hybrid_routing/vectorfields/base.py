@@ -42,6 +42,7 @@ class Vectorfield(ABC):
         self.arr_y = jnp.arange(y_min, y_max, step)
         mat_x, mat_y = jnp.meshgrid(self.arr_x, self.arr_y)
         self.u, self.v = self.get_current(mat_x, mat_y)
+        self.step = step
 
     @abstractmethod
     def get_current(self, x: jnp.array, y: jnp.array) -> jnp.array:
@@ -137,6 +138,63 @@ class Vectorfield(ABC):
         idx = jnp.argmin(jnp.abs(self.arr_x - x))
         idy = jnp.argmin(jnp.abs(self.arr_y - y))
         return jnp.asarray([self.u[idx, idy], self.v[idx, idy]])
+
+    def get_surrounding_pts_and_vectors(self, x: jnp.array, y: jnp.array) -> jnp.array:
+        idx = jnp.argmin(jnp.abs(self.arr_x - x))
+        idy = jnp.argmin(jnp.abs(self.arr_y - y))
+        p_closest = jnp.asarray([idx, idy])
+        dx = idx - x
+        dy = idy - y
+        if (dx <= 0) and (dy <= 0):
+            p00 = p_closest
+            p10 = jnp.asarray([idx + self.step, idy])
+            p01 = jnp.asarray([idx, idy + self.step])
+            p11 = jnp.asarray([idx + self.step, idy + self.step])
+        elif (dx <= 0) and (dy >= 0):
+            p00 = jnp.asarray([idx, idy - self.step])
+            p10 = jnp.asarray([idx + self.step, idy - self.step])
+            p01 = p_closest
+            p11 = jnp.asarray([idx + self.step, idy])
+        elif (dx >= 0) and (dy <= 0):
+            p00 = np.asarray([idx - self.step, idy])
+            p10 = p_closest
+            p01 = np.asarray([idx - self.step, idy + self.step])
+            p11 = np.asarray([idx, idy + self.step])
+        else:
+            p00 = np.asarray([idx - self.step, idy - self.step])
+            p01 = np.asarray([idx, idy - self.step])
+            p10 = np.asarray([idx - self.step, idy])
+            p11 = p_closest
+        surrounding_pts = jnp.asarray([p00, p01, p10, p11])
+        surrounding_vectors = []
+        for pts in surrounding_pts:
+            w = self.get_current_discrete(pts[0], pts[1])
+            surrounding_vectors.append(w)
+
+        return (surrounding_pts, jnp.asarray(surrounding_vectors))
+
+    def interpolate(x: jnp.array, y: jnp.array, surrounding):
+        # https://en.wikipedia.org/wiki/Bilinear_interpolation#Polynomial_fit
+        p00 = surrounding[0][0]
+        p11 = surrounding[0][3]
+        w = surrounding[1]
+        x1 = p00[0]
+        x2 = p11[0]
+        y1 = p00[1]
+        y2 = p11[1]
+
+        A = jnp.array(
+            [
+                [1, x1, y1, x1 * y1],
+                [1, x1, y2, x1 * y2],
+                [1, x2, y1, x2 * y1],
+                [1, x2, y2, x2 * y2],
+            ]
+        )
+        a = jnp.dot(jnp.linalg.inv(A), w).T
+        interp_x = a[0][0] + a[0][1] * x + a[0][2] * y + a[0][3] * x * y
+        interp_y = a[1][0] + a[1][1] * x + a[1][2] * y + a[1][3] * x * y
+        return (interp_x, interp_y)
 
     def plot(
         self,
