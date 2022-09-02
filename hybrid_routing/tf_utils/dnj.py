@@ -10,7 +10,7 @@ def cost_function(x, xp):
     return cost
 
 
-def discretized_cost_function(q0, q1, h):
+def cost_function_discretized(q0, q1, h):
     L1 = cost_function(q0, (q1 - q0) / h)
     L2 = cost_function(q1, 1 / h * (q1 - q0))
     L_d = h / 2 * (L1 + L2)
@@ -21,10 +21,10 @@ def hessian(f, argnums=0):
     return jacfwd(jacrev(f, argnums=argnums), argnums=argnums)
 
 
-D1Ld = jit(grad(discretized_cost_function, argnums=0))
-D2Ld = jit(grad(discretized_cost_function, argnums=1))
-D11Ld = jit(hessian(discretized_cost_function, argnums=0))
-D22Ld = jit(hessian(discretized_cost_function, argnums=1))
+D1Ld = jit(grad(cost_function_discretized, argnums=0))
+D2Ld = jit(grad(cost_function_discretized, argnums=1))
+D11Ld = jit(hessian(cost_function_discretized, argnums=0))
+D22Ld = jit(hessian(cost_function_discretized, argnums=1))
 
 
 def optimize_distance(pts, T, N, n):

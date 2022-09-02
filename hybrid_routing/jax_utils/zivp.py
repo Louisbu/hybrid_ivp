@@ -1,8 +1,9 @@
 from typing import List
+
 import numpy as np
-from scipy.integrate import odeint
-from hybrid_routing.vectorfields.base import Vectorfield
 from hybrid_routing.jax_utils.route import RouteJax
+from hybrid_routing.vectorfields.base import Vectorfield
+from scipy.integrate import odeint
 
 
 def solve_ode_zermelo(
@@ -139,7 +140,7 @@ def solve_discretized_zermelo(
         # Loop through the time steps
         for idx2, _ in enumerate(t):
             # Compute the displacement, affected by the vectorfield
-            vf_x, vf_y = vectorfield.get_current_discrete(x_temp, y_temp)
+            vf_x, vf_y = vectorfield.get_current(x_temp, y_temp)
             dx = (v_x + vf_x) * time_step
             dy = (v_y + vf_y) * time_step
             x_temp += dx
