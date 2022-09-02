@@ -173,7 +173,7 @@ class Vectorfield(ABC):
 
         return (surrounding_pts, jnp.asarray(surrounding_vectors))
 
-    def interpolate(x: jnp.array, y: jnp.array, surrounding):
+    def interpolate_poly_fit(self, x: jnp.array, y: jnp.array, surrounding):
         # https://en.wikipedia.org/wiki/Bilinear_interpolation#Polynomial_fit
         p00 = surrounding[0][0]
         p11 = surrounding[0][3]
@@ -194,6 +194,27 @@ class Vectorfield(ABC):
         a = jnp.dot(jnp.linalg.inv(A), w).T
         interp_x = a[0][0] + a[0][1] * x + a[0][2] * y + a[0][3] * x * y
         interp_y = a[1][0] + a[1][1] * x + a[1][2] * y + a[1][3] * x * y
+        return (interp_x, interp_y)
+
+    def interpolate_weighted_mean(self, x: jnp.array, y: jnp.array, surrounding):
+        p00 = surrounding[0][0]
+        p11 = surrounding[0][3]
+        a = jnp.array([[1, 1], [x, x], [y, y], [x * y, x * y]])
+        x1 = p00[0]
+        x2 = p11[0]
+        y1 = p00[1]
+        y2 = p11[1]
+        A = jnp.array(
+            [
+                [1, 1, 1, 1],
+                [x1, x1, x2, x2],
+                [y1, y2, y1, y2],
+                [x1 * y1, x1 * y2, x2 * y1, x2 * y2],
+            ]
+        )
+        w = jnp.dot(jnp.linalg.inv(A), a).T
+        interp_x = w[0][0] + w[0][1] * x + w[0][2] * y + w[0][3] * x * y
+        interp_y = w[1][0] + w[1][1] * x + w[1][2] * y + w[1][3] * x * y
         return (interp_x, interp_y)
 
     def plot(
