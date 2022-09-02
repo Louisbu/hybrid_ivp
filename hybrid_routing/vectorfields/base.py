@@ -129,84 +129,6 @@ class Vectorfield(ABC):
                 self, x_min=x_min, x_max=x_max, y_min=y_min, y_max=y_max, step=step
             )
 
-    def get_surrounding_pts_and_vectors(self, x: jnp.array, y: jnp.array) -> jnp.array:
-        idx = jnp.argmin(jnp.abs(self.arr_x - x))
-        idy = jnp.argmin(jnp.abs(self.arr_y - y))
-        p_closest = jnp.asarray([idx, idy])
-        dx = idx - x
-        dy = idy - y
-        if (dx <= 0) and (dy <= 0):
-            p00 = p_closest
-            p10 = jnp.asarray([idx + self.step, idy])
-            p01 = jnp.asarray([idx, idy + self.step])
-            p11 = jnp.asarray([idx + self.step, idy + self.step])
-        elif (dx <= 0) and (dy >= 0):
-            p00 = jnp.asarray([idx, idy - self.step])
-            p10 = jnp.asarray([idx + self.step, idy - self.step])
-            p01 = p_closest
-            p11 = jnp.asarray([idx + self.step, idy])
-        elif (dx >= 0) and (dy <= 0):
-            p00 = np.asarray([idx - self.step, idy])
-            p10 = p_closest
-            p01 = np.asarray([idx - self.step, idy + self.step])
-            p11 = np.asarray([idx, idy + self.step])
-        else:
-            p00 = np.asarray([idx - self.step, idy - self.step])
-            p01 = np.asarray([idx, idy - self.step])
-            p10 = np.asarray([idx - self.step, idy])
-            p11 = p_closest
-        surrounding_pts = jnp.asarray([p00, p01, p10, p11])
-        surrounding_vectors = []
-        for pts in surrounding_pts:
-            w = self.get_current_discrete(pts[0], pts[1])
-            surrounding_vectors.append(w)
-
-        return (surrounding_pts, jnp.asarray(surrounding_vectors))
-
-    def interpolate_poly_fit(self, x: jnp.array, y: jnp.array, surrounding):
-        # https://en.wikipedia.org/wiki/Bilinear_interpolation#Polynomial_fit
-        p00 = surrounding[0][0]
-        p11 = surrounding[0][3]
-        w = surrounding[1]
-        x1 = p00[0]
-        x2 = p11[0]
-        y1 = p00[1]
-        y2 = p11[1]
-
-        A = jnp.array(
-            [
-                [1, x1, y1, x1 * y1],
-                [1, x1, y2, x1 * y2],
-                [1, x2, y1, x2 * y1],
-                [1, x2, y2, x2 * y2],
-            ]
-        )
-        a = jnp.dot(jnp.linalg.inv(A), w).T
-        interp_x = a[0][0] + a[0][1] * x + a[0][2] * y + a[0][3] * x * y
-        interp_y = a[1][0] + a[1][1] * x + a[1][2] * y + a[1][3] * x * y
-        return (interp_x, interp_y)
-
-    def interpolate_weighted_mean(self, x: jnp.array, y: jnp.array, surrounding):
-        p00 = surrounding[0][0]
-        p11 = surrounding[0][3]
-        a = jnp.array([[1, 1], [x, x], [y, y], [x * y, x * y]])
-        x1 = p00[0]
-        x2 = p11[0]
-        y1 = p00[1]
-        y2 = p11[1]
-        A = jnp.array(
-            [
-                [1, 1, 1, 1],
-                [x1, x1, x2, x2],
-                [y1, y2, y1, y2],
-                [x1 * y1, x1 * y2, x2 * y1, x2 * y2],
-            ]
-        )
-        w = jnp.dot(jnp.linalg.inv(A), a).T
-        interp_x = w[0][0] + w[0][1] * x + w[0][2] * y + w[0][3] * x * y
-        interp_y = w[1][0] + w[1][1] * x + w[1][2] * y + w[1][3] * x * y
-        return (interp_x, interp_y)
-
     def plot(
         self,
         x_min: float = -4,
@@ -252,6 +174,7 @@ class VectorfieldDiscrete(Vectorfield):
         self.__dict__.update(vectorfield.__dict__)
         self.arr_x = jnp.arange(x_min, x_max, step)
         self.arr_y = jnp.arange(y_min, y_max, step)
+        self.step = step
         mat_x, mat_y = jnp.meshgrid(self.arr_x, self.arr_y)
         u, v = vectorfield.get_current(mat_x, mat_y)
         self.u, self.v = u.T, v.T
@@ -276,3 +199,72 @@ class VectorfieldDiscrete(Vectorfield):
         """
         idx, idy = self.closest_idx(x), self.closest_idy(y)
         return jnp.asarray([self.u[idx, idy], self.v[idx, idy]])
+
+    def get_surrounding_pts_and_vectors(self, x: jnp.array, y: jnp.array) -> jnp.array:
+        idx, idy = self.closest_idx(x), self.closest_idy(y)
+        dx = self.arr_x[idx] - jnp.atleast_1d(x)
+        dy = self.arr_y[idy] - jnp.atleast_1d(y)
+        mask_x, mask_y = dx > 0, dy > 0
+        if mask_x.any():
+            idx0 = idx.at[mask_x].set(idx[mask_x] - 1)
+        else:
+            idx0 = idx
+        if mask_y.any():
+            idy0 = idy.at[mask_y].set(idy[mask_y] - 1)
+        else:
+            idy0 = idy
+        idx1, idy1 = idx0 + 1, idy0 + 1
+        x0, y0 = self.arr_x[idx0], self.arr_y[idy0]
+        x1, y1 = self.arr_x[idx1], self.arr_y[idy1]
+        u00, v00 = self.u[idx0, idy0], self.v[idx0, idy0]
+        u01, v01 = self.u[idx0, idy1], self.v[idx0, idy1]
+        u10, v10 = self.u[idx1, idy0], self.v[idx1, idy0]
+        u11, v11 = self.u[idx1, idy1], self.v[idx1, idy1]
+        return (
+            jnp.asarray([x0, y0, x1, y1]),
+            jnp.asarray([[u00, v00], [u01, v01], [u10, v10], [u11, v11]]),
+        )
+
+    def interpolate_poly_fit(self, x: jnp.array, y: jnp.array, surrounding):
+        # https://en.wikipedia.org/wiki/Bilinear_interpolation#Polynomial_fit
+        p00 = surrounding[0][0]
+        p11 = surrounding[0][3]
+        w = surrounding[1]
+        x1 = p00[0]
+        x2 = p11[0]
+        y1 = p00[1]
+        y2 = p11[1]
+
+        A = jnp.array(
+            [
+                [1, x1, y1, x1 * y1],
+                [1, x1, y2, x1 * y2],
+                [1, x2, y1, x2 * y1],
+                [1, x2, y2, x2 * y2],
+            ]
+        )
+        a = jnp.dot(jnp.linalg.inv(A), w).T
+        interp_x = a[0][0] + a[0][1] * x + a[0][2] * y + a[0][3] * x * y
+        interp_y = a[1][0] + a[1][1] * x + a[1][2] * y + a[1][3] * x * y
+        return (interp_x, interp_y)
+
+    def interpolate_weighted_mean(self, x: jnp.array, y: jnp.array, surrounding):
+        p00 = surrounding[0][0]
+        p11 = surrounding[0][3]
+        a = jnp.array([[1, 1], [x, x], [y, y], [x * y, x * y]])
+        x1 = p00[0]
+        x2 = p11[0]
+        y1 = p00[1]
+        y2 = p11[1]
+        A = jnp.array(
+            [
+                [1, 1, 1, 1],
+                [x1, x1, x2, x2],
+                [y1, y2, y1, y2],
+                [x1 * y1, x1 * y2, x2 * y1, x2 * y2],
+            ]
+        )
+        w = jnp.dot(jnp.linalg.inv(A), a).T
+        interp_x = w[0][0] + w[0][1] * x + w[0][2] * y + w[0][3] * x * y
+        interp_y = w[1][0] + w[1][1] * x + w[1][2] * y + w[1][3] * x * y
+        return (interp_x, interp_y)
