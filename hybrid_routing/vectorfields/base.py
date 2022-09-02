@@ -225,22 +225,17 @@ class VectorfieldDiscrete(Vectorfield):
             jnp.asarray([[u00, v00], [u01, v01], [u10, v10], [u11, v11]]),
         )
 
-    def interpolate_poly_fit(self, x: jnp.array, y: jnp.array, surrounding):
+    def interpolate_poly_fit(self, x: jnp.array, y: jnp.array):
+        pts, w = self.get_surrounding_pts_and_vectors(x, y)
         # https://en.wikipedia.org/wiki/Bilinear_interpolation#Polynomial_fit
-        p00 = surrounding[0][0]
-        p11 = surrounding[0][3]
-        w = surrounding[1]
-        x1 = p00[0]
-        x2 = p11[0]
-        y1 = p00[1]
-        y2 = p11[1]
+        x0, x1, y0, y1 = pts
 
         A = jnp.array(
             [
+                [1, x0, y0, x0 * y0],
+                [1, x0, y1, x0 * y1],
+                [1, x1, y0, x1 * y0],
                 [1, x1, y1, x1 * y1],
-                [1, x1, y2, x1 * y2],
-                [1, x2, y1, x2 * y1],
-                [1, x2, y2, x2 * y2],
             ]
         )
         a = jnp.dot(jnp.linalg.inv(A), w).T
@@ -248,20 +243,16 @@ class VectorfieldDiscrete(Vectorfield):
         interp_y = a[1][0] + a[1][1] * x + a[1][2] * y + a[1][3] * x * y
         return (interp_x, interp_y)
 
-    def interpolate_weighted_mean(self, x: jnp.array, y: jnp.array, surrounding):
-        p00 = surrounding[0][0]
-        p11 = surrounding[0][3]
+    def interpolate_weighted_mean(self, x: jnp.array, y: jnp.array):
+        pts, w = self.get_surrounding_pts_and_vectors(x, y)
+        x0, x1, y0, y1 = pts
         a = jnp.array([[1, 1], [x, x], [y, y], [x * y, x * y]])
-        x1 = p00[0]
-        x2 = p11[0]
-        y1 = p00[1]
-        y2 = p11[1]
         A = jnp.array(
             [
                 [1, 1, 1, 1],
-                [x1, x1, x2, x2],
-                [y1, y2, y1, y2],
-                [x1 * y1, x1 * y2, x2 * y1, x2 * y2],
+                [x0, x0, x1, x1],
+                [y0, y1, y0, y1],
+                [x0 * y0, x0 * y1, x1 * y0, x1 * y1],
             ]
         )
         w = jnp.dot(jnp.linalg.inv(A), a).T
