@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Iterable
+from typing import Iterable, Tuple
 
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
@@ -158,6 +158,12 @@ class Vectorfield(ABC):
         plt.quiver(x, y, u, v, color=color)
 
 
+def _build_matrix(x: jnp.array, y: jnp.array) -> jnp.array:
+    return jnp.expand_dims(
+        jnp.stack([jnp.ones(x.shape), x, y, x * y], axis=-1), axis=-2
+    )
+
+
 class VectorfieldDiscrete(Vectorfield):
     is_discrete = True
 
@@ -222,45 +228,68 @@ class VectorfieldDiscrete(Vectorfield):
         u11, v11 = self.u[idx1, idy1], self.v[idx1, idy1]
         return (
             jnp.asarray([x0, y0, x1, y1]),
-            jnp.asarray([[u00, v00], [u01, v01], [u10, v10], [u11, v11]]),
+            jnp.stack([u00, u01, u10, u11], axis=-1),
+            jnp.stack([v00, v01, v10, v11], axis=-1),
         )
 
-    def interpolate_poly_fit(self, x: jnp.array, y: jnp.array):
+    def interpolate_poly_fit(self, x: jnp.array, y: jnp.array) -> Tuple[jnp.array]:
+        """https://en.wikipedia.org/wiki/Bilinear_interpolation#Polynomial_fit"""
+
+        # Given arrays x, y of shape (N), may be any number of dimensions
         x, y = jnp.atleast_1d(x), jnp.atleast_1d(y)
-        pts, w = self.get_surrounding_pts_and_vectors(x.flatten(), y.flatten())
-        # https://en.wikipedia.org/wiki/Bilinear_interpolation#Polynomial_fit
-        x0, x1, y0, y1 = pts
+        # Get border coordinates xi, yi with shape (N)
+        # and velocities u, v with shape (N, 4)
+        (x0, x1, y0, y1), u, v = self.get_surrounding_pts_and_vectors(x, y)
 
-        A = jnp.array(
+        # Build matrix of shape (N, 4, 4) and invert it
+        mat = jnp.concatenate(
             [
-                [jnp.ones(x0.shape), x0, y0, x0 * y0],
-                [jnp.ones(x0.shape), x0, y1, x0 * y1],
-                [jnp.ones(x0.shape), x1, y0, x1 * y0],
-                [jnp.ones(x0.shape), x1, y1, x1 * y1],
-            ]
+                _build_matrix(x0, y0),
+                _build_matrix(x0, y1),
+                _build_matrix(x1, y0),
+                _build_matrix(x1, y1),
+            ],
+            axis=-2,
         )
-        Ainv = jnp.linalg.inv(jnp.rollaxis(A, -1))
-        w = jnp.rollaxis(w, -1)
-        w_new = []
-        for i in range(len(x)):
-            a = jnp.dot(Ainv[i], w[i])
-            A = jnp.array([1, x[i], y[i], x[i] * y[i]])
-            w_new.append(jnp.dot(A, a))
-        return jnp.array(w_new).T
+        mat_inv = jnp.linalg.inv(mat)
+        # Stack u, v arrays into (N, 4, 2)
+        uv = jnp.stack([u, v], axis=-1)
+        # Matrix multiplication output is shape (N, 4, 2)
+        mat_inv_uv = jnp.matmul(mat_inv, uv)
+        # Build new matrix with points to interpolate, shape (N, 1, 4)
+        mat = _build_matrix(x, y)
+        # Compute new velocities, shape (N, 1, 4) x (N, 4, 2) = (N, 1, 2)
+        uv = jnp.matmul(mat, mat_inv_uv)
+        u, v = jnp.rollaxis(uv, -1)
+        # Reshape velocity arrays to original shape (N)
+        return u.reshape(x.shape), v.reshape(x.shape)
 
     def interpolate_weighted_mean(self, x: jnp.array, y: jnp.array):
-        pts, w = self.get_surrounding_pts_and_vectors(x, y)
-        x0, x1, y0, y1 = pts
-        a = jnp.array([[1, 1], [x, x], [y, y], [x * y, x * y]])
-        A = jnp.array(
+        # Given arrays x, y of shape (N), may be any number of dimensions
+        x, y = jnp.atleast_1d(x), jnp.atleast_1d(y)
+        # Get border coordinates xi, yi with shape (N)
+        # and velocities u, v with shape (N, 4)
+        (x0, x1, y0, y1), u, v = self.get_surrounding_pts_and_vectors(x, y)
+
+        # Build matrix of shape (N, 4, 4) and invert it
+        mat = jnp.concatenate(
             [
-                [1, 1, 1, 1],
-                [x0, x0, x1, x1],
-                [y0, y1, y0, y1],
-                [x0 * y0, x0 * y1, x1 * y0, x1 * y1],
-            ]
+                _build_matrix(x0, y0),
+                _build_matrix(x0, y1),
+                _build_matrix(x1, y0),
+                _build_matrix(x1, y1),
+            ],
+            axis=-2,
         )
-        w = jnp.dot(jnp.linalg.inv(A), a).T
-        interp_x = w[0][0] + w[0][1] * x + w[0][2] * y + w[0][3] * x * y
-        interp_y = w[1][0] + w[1][1] * x + w[1][2] * y + w[1][3] * x * y
-        return (interp_x, interp_y)
+        mat_inv = jnp.linalg.inv(mat)
+        # Stack u, v arrays into (N, 4, 2)
+        uv = jnp.stack([u, v], axis=-1)
+        # Matrix multiplication output is shape (N, 4, 2)
+        mat_inv_uv = jnp.matmul(mat_inv, uv)
+        # Build new matrix with points to interpolate, shape (N, 1, 4)
+        mat = _build_matrix(x, y)
+        # Compute new velocities, shape (N, 1, 4) x (N, 4, 2) = (N, 1, 2)
+        uv = jnp.matmul(mat, mat_inv_uv)
+        u, v = jnp.rollaxis(uv, -1)
+        # Reshape velocity arrays to original shape (N)
+        return u.reshape(x.shape), v.reshape(x.shape)
