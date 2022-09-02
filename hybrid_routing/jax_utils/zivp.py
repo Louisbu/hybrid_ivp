@@ -1,8 +1,9 @@
 from typing import List
+
 import numpy as np
-from scipy.integrate import odeint
-from hybrid_routing.vectorfields.base import Vectorfield
 from hybrid_routing.jax_utils.route import RouteJax
+from hybrid_routing.vectorfields.base import Vectorfield
+from scipy.integrate import odeint
 
 
 def solve_ode_zermelo(
@@ -77,6 +78,7 @@ def solve_discretized_zermelo(
     vectorfield: Vectorfield,
     x: float,
     y: float,
+    time_start: float = 0,
     time_end: float = 2,
     time_step: float = 0.1,
     cone_center: float = 1.0,
@@ -113,7 +115,7 @@ def solve_discretized_zermelo(
         Returns a list of all paths thats generated at each cone search. All points of the paths are of RouteJax object.
     """
 
-    t = np.arange(0, time_end, time_step)
+    t = np.arange(time_start, time_end, time_step)
     # Define the search cone
     delta = 1e-4 if angle_amplitude <= 1e-4 else angle_amplitude / 2
     if num_angles > 1:
@@ -138,7 +140,7 @@ def solve_discretized_zermelo(
         # Loop through the time steps
         for idx2, _ in enumerate(t):
             # Compute the displacement, affected by the vectorfield
-            vf_x, vf_y = vectorfield.get_current_discrete(x_temp, y_temp)
+            vf_x, vf_y = vectorfield.get_current(x_temp, y_temp)
             dx = (v_x + vf_x) * time_step
             dy = (v_y + vf_y) * time_step
             x_temp += dx

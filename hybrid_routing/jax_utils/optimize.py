@@ -44,7 +44,6 @@ def optimize_route(
     num_angles: int = 5,
     vel: float = 5,
     dist_min: Optional[float] = None,
-    discrete_vectorfield: bool = False,
 ) -> List[RouteJax]:
 
     """
@@ -111,8 +110,8 @@ def optimize_route(
     # transversed during one loop
     dist_min = vel * time_iter if dist_min is None else dist_min
 
-    # Choose solving method depends on whether wnats discrete_vectorfield
-    if discrete_vectorfield:
+    # Choose solving method depends on whether the vectorfield is discrete
+    if vectorfield.is_discrete:
         fun = solve_discretized_zermelo
     else:
         fun = solve_ode_zermelo
@@ -125,6 +124,7 @@ def optimize_route(
             vectorfield,
             x,
             y,
+            time_start=t,
             time_end=t_end,
             time_step=time_step,
             cone_center=cone_center,
