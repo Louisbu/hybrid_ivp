@@ -226,22 +226,27 @@ class VectorfieldDiscrete(Vectorfield):
         )
 
     def interpolate_poly_fit(self, x: jnp.array, y: jnp.array):
-        pts, w = self.get_surrounding_pts_and_vectors(x, y)
+        x, y = jnp.atleast_1d(x), jnp.atleast_1d(y)
+        pts, w = self.get_surrounding_pts_and_vectors(x.flatten(), y.flatten())
         # https://en.wikipedia.org/wiki/Bilinear_interpolation#Polynomial_fit
         x0, x1, y0, y1 = pts
 
         A = jnp.array(
             [
-                [1, x0, y0, x0 * y0],
-                [1, x0, y1, x0 * y1],
-                [1, x1, y0, x1 * y0],
-                [1, x1, y1, x1 * y1],
+                [jnp.ones(x0.shape), x0, y0, x0 * y0],
+                [jnp.ones(x0.shape), x0, y1, x0 * y1],
+                [jnp.ones(x0.shape), x1, y0, x1 * y0],
+                [jnp.ones(x0.shape), x1, y1, x1 * y1],
             ]
         )
-        a = jnp.dot(jnp.linalg.inv(A), w).T
-        interp_x = a[0][0] + a[0][1] * x + a[0][2] * y + a[0][3] * x * y
-        interp_y = a[1][0] + a[1][1] * x + a[1][2] * y + a[1][3] * x * y
-        return (interp_x, interp_y)
+        Ainv = jnp.linalg.inv(jnp.rollaxis(A, -1))
+        w = jnp.rollaxis(w, -1)
+        w_new = []
+        for i in range(len(x)):
+            a = jnp.dot(Ainv[i], w[i])
+            A = jnp.array([1, x[i], y[i], x[i] * y[i]])
+            w_new.append(jnp.dot(A, a))
+        return jnp.array(w_new).T
 
     def interpolate_weighted_mean(self, x: jnp.array, y: jnp.array):
         pts, w = self.get_surrounding_pts_and_vectors(x, y)
