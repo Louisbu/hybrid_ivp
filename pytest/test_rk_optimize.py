@@ -1,7 +1,7 @@
 import numpy as np
-from hybrid_routing.rk_utils.dnj import DNJ
+from hybrid_routing.jax_utils.dnj import DNJ
+from hybrid_routing.jax_utils.route import RouteJax
 from hybrid_routing.rk_utils.optimize import optimize_route
-from hybrid_routing.rk_utils.route import RouteRK
 from hybrid_routing.vectorfields.constant_current import ConstantCurrent
 
 
@@ -15,7 +15,7 @@ def test_optimize():
     num_angles = 10
     vel = 1
 
-    route_opt = RouteRK(x=x_start, y=y_start, t=0)
+    route_opt = RouteJax(x=x_start, y=y_start, t=0)
 
     iter_optim = optimize_route(
         vectorfield,

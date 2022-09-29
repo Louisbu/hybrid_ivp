@@ -1,13 +1,13 @@
 from typing import List, Optional, Tuple
 
 import numpy as np
-from hybrid_routing.rk_utils.route import RouteRK
-from hybrid_routing.rk_utils.zivp import solve_discretized_zermelo, solve_ode_zermelo
+from hybrid_routing.jax_utils.route import RouteJax
+from hybrid_routing.rk_utils.zivp import solve_rk_zermelo
 from hybrid_routing.utils.distance import dist_to_dest
 from hybrid_routing.vectorfields.base import Vectorfield
 
 
-def min_dist_to_dest(list_routes: List[RouteRK], pt_goal: Tuple) -> int:
+def min_dist_to_dest(list_routes: List[RouteJax], pt_goal: Tuple) -> int:
     """Out of a list of routes, returns the index of the route the ends
     at the minimum distance to the goal.
 
@@ -44,10 +44,10 @@ def optimize_route(
     num_angles: int = 5,
     vel: float = 5,
     dist_min: Optional[float] = None,
-) -> List[RouteRK]:
+) -> List[RouteJax]:
 
     """
-    System of ODE is from Zermelo's Navigation Problem https://en.wikipedia.org/wiki/Zermelo%27s_navigation_problem#General_solution)
+    System of RK is from Zermelo's Navigation Problem https://en.wikipedia.org/wiki/Zermelo%27s_navigation_problem#General_solution)
     1) This function first computes the locally optimized paths with Scipy's ODE solver.
     Given the starting coordinates (x_start, y_start), time (t_max), speed of the ship (vel),
     and the direction the ship points in (angle_amplitude / num_angles), the ODE solver returns
@@ -91,7 +91,7 @@ def optimize_route(
 
     Yields
     ------
-    Iterator[List[RouteRK]]
+    Iterator[List[RouteJax]]
         Returns a list with all paths generated within the search cone.
         The path that terminates closest to destination is on top.
     """
@@ -110,17 +110,11 @@ def optimize_route(
     # transversed during one loop
     dist_min = vel * time_iter if dist_min is None else dist_min
 
-    # Choose solving method depends on whether the vectorfield is discrete
-    if vectorfield.is_discrete:
-        fun = solve_discretized_zermelo
-    else:
-        fun = solve_ode_zermelo
-
     while dist_to_dest((x, y), (x_end, y_end)) > dist_min:
         # Compute time at the end of this step
         t_end = t + time_iter
 
-        list_routes = fun(
+        list_routes = solve_rk_zermelo(
             vectorfield,
             x,
             y,
