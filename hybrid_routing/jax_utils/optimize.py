@@ -92,6 +92,8 @@ def optimize_route(
         Speed of the ship (unit unknown), by default 5
     dist_min : float, optional
         Minimum terminating distance around the destination (x_end, y_end), by default None
+    use_rk : bool, optional
+        Use Runge-Kutta solver instead of odeint solver
 
 
     Yields
