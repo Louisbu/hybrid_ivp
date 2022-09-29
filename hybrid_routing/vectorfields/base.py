@@ -47,11 +47,13 @@ class Vectorfield(ABC):
         The value of dv/dx, dv/dy, du/dx, du/dy, with respect to the call.
     """
 
-    def du(self, x: float, y: float) -> Tuple[float]:
-        return self._du(x, y)
+    def du(self, x: jnp.array, y: jnp.array) -> Tuple[jnp.array]:
+        out = jnp.asarray([self._du(x, y) for x, y in zip(x.ravel(), y.ravel())])
+        return out[:, 0].reshape(x.shape), out[:, 1].reshape(x.shape)
 
-    def dv(self, x: float, y: float) -> Tuple[float]:
-        return self._dv(x, y)
+    def dv(self, x: jnp.array, y: jnp.array) -> Tuple[jnp.array]:
+        out = jnp.asarray([self._dv(x, y) for x, y in zip(x.ravel(), y.ravel())])
+        return out[:, 0].reshape(x.shape), out[:, 1].reshape(x.shape)
 
     def ode_zermelo(
         self,
