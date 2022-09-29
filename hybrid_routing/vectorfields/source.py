@@ -4,17 +4,11 @@ import jax.numpy as jnp
 
 
 class Source(Vectorfield):
-    def dvdx(self, x: float, y: float) -> float:
-        return 0
+    def dv(self, x: float, y: float) -> float:
+        return (0, 1 / 75)
 
-    def dvdy(self, x: float, y: float) -> float:
-        return 1 / 75
-
-    def dudx(self, x: float, y: float) -> float:
-        return 1 / 75
-
-    def dudy(self, x: float, y: float) -> float:
-        return 0
+    def du(self, x: float, y: float) -> float:
+        return (1 / 75, 0)
 
     def get_current(self, x: jnp.array, y: jnp.array) -> Iterable[float]:
         return jnp.asarray([(x - 5) / 25, (y - 5) / 25])

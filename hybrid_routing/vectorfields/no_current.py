@@ -11,17 +11,11 @@ class NoCurrent(Vectorfield):
         dv/dx = 0,  dv/dy = 0
     """
 
-    def dvdx(self, x: float, y: float) -> float:
-        return 0
+    def dv(self, x: float, y: float) -> float:
+        return (0, 0)
 
-    def dvdy(self, x: float, y: float) -> float:
-        return 0
-
-    def dudx(self, x: float, y: float) -> float:
-        return 0
-
-    def dudy(self, x: float, y: float) -> float:
-        return 0
+    def du(self, x: float, y: float) -> float:
+        return (0, 0)
 
     def get_current(self, x: jnp.array, y: jnp.array) -> jnp.array:
         u = jnp.full_like(x, 0.0)

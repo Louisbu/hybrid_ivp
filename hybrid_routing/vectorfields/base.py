@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Iterable
+from typing import Iterable, Tuple
 
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
@@ -17,6 +17,10 @@ class Vectorfield(ABC):
     """
 
     is_discrete = False
+
+    def __init__(self):
+        self._dv = jit(jacrev(self.get_current, argnums=1))
+        self._du = jit(jacfwd(self.get_current, argnums=0))
 
     @abstractmethod
     def get_current(self, x: jnp.array, y: jnp.array) -> jnp.array:
@@ -43,21 +47,11 @@ class Vectorfield(ABC):
         The value of dv/dx, dv/dy, du/dx, du/dy, with respect to the call.
     """
 
-    def dvdx(self, x: float, y: float) -> float:
-        dvx = jit(jacrev(self.get_current, argnums=1))
-        return dvx(x, y)[0]
+    def du(self, x: float, y: float) -> Tuple[float]:
+        return self._du(x, y)
 
-    def dvdy(self, x: float, y: float) -> float:
-        dvy = jit(jacrev(self.get_current, argnums=1))
-        return dvy(x, y)[1]
-
-    def dudx(self, x: float, y: float) -> float:
-        dux = jit(jacfwd(self.get_current, argnums=0))
-        return dux(x, y)[0]
-
-    def dudy(self, x: float, y: float) -> float:
-        duy = jit(jacfwd(self.get_current, argnums=0))
-        return duy(x, y)[1]
+    def dv(self, x: float, y: float) -> Tuple[float]:
+        return self._dv(x, y)
 
     def ode_zermelo(
         self,
@@ -86,10 +80,12 @@ class Vectorfield(ABC):
         vector_field = self.get_current(x, y)
         dxdt = vel * jnp.cos(theta) + vector_field[0]
         dydt = vel * jnp.sin(theta) + vector_field[1]
+        dvdx, dvdy = self.dv(x, y)
+        dudx, dudy = self.du(x, y)
         dthetadt = (
-            self.dvdx(x, y) * jnp.sin(theta) ** 2
-            + jnp.sin(theta) * jnp.cos(theta) * (self.dudx(x, y) - self.dvdy(x, y))
-            - self.dudy(x, y) * jnp.cos(theta) ** 2
+            dvdx * jnp.sin(theta) ** 2
+            + jnp.sin(theta) * jnp.cos(theta) * (dudx - dvdy)
+            - dudy * jnp.cos(theta) ** 2
         )
 
         return [dxdt, dydt, dthetadt]
