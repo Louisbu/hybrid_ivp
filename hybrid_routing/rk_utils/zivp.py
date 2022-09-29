@@ -64,32 +64,40 @@ def solve_ode_zermelo(
     else:
         thetas = [cone_center]
 
-    list_routes: List[RouteRK] = [None] * len(thetas)
-    for idx, theta in enumerate(thetas):
-        arr_x = [x] * len(arr_t)
-        arr_y = [y] * len(arr_t)
-        arr_theta = [theta] * len(arr_t)
-        for j, t0 in enumerate(arr_t[:-1]):
-            q0 = np.asarray([arr_x[j], arr_y[j], arr_theta[j]])
-            k1 = np.asarray(vectorfield.ode_zermelo(q0, t0, vel=vel))
-            k2 = np.asarray(
-                vectorfield.ode_zermelo(
-                    q0 + k1 * time_step / 2, t0 + time_step / 2, vel=vel
-                )
+    # Initializes the arrays containing the coordinates
+    arr_x = [np.repeat(x, num_angles)] * len(arr_t)
+    arr_y = [np.repeat(y, num_angles)] * len(arr_t)
+    arr_theta = [thetas] * len(arr_t)
+    # Update the coordinates following the RK algorithm
+    for idx, t0 in enumerate(arr_t[:-1]):
+        q0 = np.asarray([arr_x[idx], arr_y[idx], arr_theta[idx]])
+        k1 = np.asarray(vectorfield.ode_zermelo(q0, t0, vel=vel))
+        k2 = np.asarray(
+            vectorfield.ode_zermelo(
+                q0 + k1 * time_step / 2, t0 + time_step / 2, vel=vel
             )
-            k3 = np.asarray(
-                vectorfield.ode_zermelo(
-                    q0 + k2 * time_step / 2, t0 + time_step / 2, vel=vel
-                )
+        )
+        k3 = np.asarray(
+            vectorfield.ode_zermelo(
+                q0 + k2 * time_step / 2, t0 + time_step / 2, vel=vel
             )
-            k4 = np.asarray(
-                vectorfield.ode_zermelo(q0 + k3 * time_step, t0 + time_step, vel=vel)
-            )
-            q1 = q0 + time_step * (k1 + 2 * k2 + 2 * k3 + k4) / 6
-            arr_x[j + 1] = q1[0]
-            arr_y[j + 1] = q1[1]
-            arr_theta[j + 1] = q1[2]
-        list_routes[idx] = RouteRK(x=arr_x, y=arr_y, t=arr_t, theta=arr_theta)
+        )
+        k4 = np.asarray(
+            vectorfield.ode_zermelo(q0 + k3 * time_step, t0 + time_step, vel=vel)
+        )
+        q1 = q0 + time_step * (k1 + 2 * k2 + 2 * k3 + k4) / 6
+        arr_x[idx + 1] = q1[0]
+        arr_y[idx + 1] = q1[1]
+        arr_theta[idx + 1] = q1[2]
+
+    list_routes: List[RouteRK] = [None] * num_angles
+    for idx in range(num_angles):
+        list_routes[idx] = RouteRK(
+            x=[v[idx] for v in arr_x],
+            y=[v[idx] for v in arr_y],
+            t=arr_t,
+            theta=[v[idx] for v in arr_theta],
+        )
 
     return list_routes
 
