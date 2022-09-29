@@ -249,6 +249,20 @@ class Optimizer:
             list_routes.insert(0, list_routes.pop(idx_best))
             yield list_routes
 
+            # If routes were dropped, recompute new ones
+            num_missing = self.num_angles - len(list_routes)
+            if num_missing > 0:
+                list_routes.extend(
+                    [
+                        RouteJax(route_best.x[-1], route_best.y[-1], t, theta)
+                        for theta in np.linspace(
+                            cone_center - self.angle_delta,
+                            cone_center + self.angle_delta,
+                            self.num_angles,
+                        )
+                    ]
+                )
+
             if x == x_old and y == y_old:
                 break
 
