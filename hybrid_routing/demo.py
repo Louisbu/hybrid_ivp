@@ -67,11 +67,13 @@ dict_vectorfields = dict(
 )
 
 vectorfield_name = st.selectbox("Vector field:", sorted(dict_vectorfields.keys()))
-rowvcol1, rowvcol2 = st.columns(2, gap="large")
+rowvcol1, rowvcol2, rowvcol3 = st.columns([1, 2, 1], gap="medium")
 with rowvcol1:
     do_discretize = st.checkbox("Discretized", value=False)
 with rowvcol2:
     optimize_for = st.selectbox("Optimize for:", ["time", "fuel"])
+with rowvcol3:
+    use_rk = st.checkbox("Use Runge-Kutta", value=True)
 
 # Initialize vectorfield
 vectorfield: Vectorfield = dict_vectorfields[vectorfield_name]()
@@ -223,6 +225,7 @@ if do_run:
         angle_amplitude=angle * pi / 180,
         num_angles=num_angles,
         vel=vel,
+        use_rk=use_rk,
     )
     # Loop through optimization
     for list_routes in iter_optim:
