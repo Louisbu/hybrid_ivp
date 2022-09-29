@@ -23,9 +23,8 @@ import matplotlib.pyplot as plt
 import streamlit as st
 from PIL import Image
 
-from hybrid_routing.jax_utils.dnj import DNJRandomGuess
-from hybrid_routing.jax_utils.dnj import DNJ
-from hybrid_routing.jax_utils.optimize import optimize_route
+from hybrid_routing.jax_utils.dnj import DNJ, DNJRandomGuess
+from hybrid_routing.jax_utils.optimize import Optimizer
 from hybrid_routing.jax_utils.route import RouteJax
 from hybrid_routing.vectorfields import *
 from hybrid_routing.vectorfields.base import Vectorfield
@@ -81,7 +80,6 @@ if do_discretize:
     vectorfield = vectorfield.discretize(
         x_min=X_MIN, x_max=X_MAX, y_min=Y_MIN, y_max=Y_MAX, step=0.1
     )
-
 
 ###############
 # Coordinates #
@@ -140,8 +138,20 @@ with row1col4:
         "Number of angles", min_value=3, max_value=40, value=6, step=1, key="num_angle"
     )
 
-# DNJ
 time_step = time_iter / 20
+
+# Initialize optimizer
+optimizer = Optimizer(
+    vectorfield,
+    time_iter=time_iter,
+    time_step=time_step,
+    angle_amplitude=angle * pi / 180,
+    num_angles=num_angles,
+    vel=vel,
+    use_rk=use_rk,
+)
+
+# DNJ
 dnj = DNJ(vectorfield=vectorfield, time_step=time_step)
 
 ###########
@@ -214,19 +224,7 @@ if do_run:
     route_raw = RouteJax(x=x_start, y=y_start, t=0)
     route_dnj = RouteJax(x=x_start, y=y_start, t=0)
     # Build iteration over optimization
-    iter_optim = optimize_route(
-        vectorfield,
-        x_start,
-        y_start,
-        x_end,
-        y_end,
-        time_iter=time_iter,
-        time_step=time_step,
-        angle_amplitude=angle * pi / 180,
-        num_angles=num_angles,
-        vel=vel,
-        use_rk=use_rk,
-    )
+    iter_optim = optimizer.optimize_route(x_start, y_start, x_end, y_end)
     # Loop through optimization
     for list_routes in iter_optim:
         # Loop through the route segments
