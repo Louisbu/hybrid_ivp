@@ -204,8 +204,10 @@ class Optimizer:
             # Compute time at the end of this step
             t_end = t + self.time_iter
 
-            for idx, route in enumerate(list_routes):
-                list_routes[idx] = self.solver(
+            list_routes_new: List[RouteJax] = []
+
+            for route in list_routes:
+                route_new = self.solver(
                     self.vectorfield,
                     route.x[-1],
                     route.y[-1],
@@ -217,6 +219,20 @@ class Optimizer:
                     num_angles=1,
                     vel=self.vel,
                 )[0]
+
+                # Compute angle between first and last point
+                dx = x_end - route_new.x[-1]
+                dy = y_end - route_new.y[-1]
+                # Drop routes which heading is not inside search cone
+                angle_min, angle_max = (
+                    np.arctan2(dy, dx) + np.array([-1, 1]) * self.angle_delta / 2
+                )
+                if route_new.theta[-1] > angle_max or route_new.theta[-1] < angle_min:
+                    pass
+                else:
+                    list_routes_new.append(route_new)
+
+            list_routes = list_routes_new
 
             x_old, y_old = x, y
             idx_best = min_dist_to_dest(list_routes, (x_end, y_end))
