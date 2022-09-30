@@ -1,6 +1,5 @@
 from copy import deepcopy
 from typing import List, Optional, Tuple
-from xml.dom.expatbuilder import parseString
 
 import numpy as np
 from hybrid_routing.jax_utils.route import RouteJax

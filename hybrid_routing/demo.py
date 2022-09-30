@@ -36,7 +36,7 @@ X_START, Y_START = 0.0, 0.0
 X_END, Y_END = 6.0, 2.0
 VEL_MIN, VEL, VEL_MAX = 0.1, 1.0, 2.0
 TIME_MIN, TIME, TIME_MAX = 0.1, 0.5, 2.0
-NUM_ITER_DNJ = 2000
+NUM_ITER_DNJ = 500
 
 st.set_page_config(
     layout="centered", page_icon="img/dalhousie.png", page_title="Hybrid Routing"
