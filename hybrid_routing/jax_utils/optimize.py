@@ -1,4 +1,6 @@
+from copy import deepcopy
 from typing import List, Optional, Tuple
+from xml.dom.expatbuilder import parseString
 
 import numpy as np
 from hybrid_routing.jax_utils.route import RouteJax
@@ -219,6 +221,9 @@ class Optimizer:
                     num_angles=1,
                     vel=self.vel,
                 )[0]
+                route.append_points(
+                    route_new.x, route_new.y, t=route_new.t, theta=route_new.theta
+                )
 
                 # Compute angle between first and last point
                 dx = x_end - route_new.x[-1]
@@ -230,7 +235,7 @@ class Optimizer:
                 if route_new.theta[-1] > angle_max or route_new.theta[-1] < angle_min:
                     pass
                 else:
-                    list_routes_new.append(route_new)
+                    list_routes_new.append(route)
 
             list_routes = list_routes_new
 
@@ -252,16 +257,15 @@ class Optimizer:
             # If routes were dropped, recompute new ones
             num_missing = self.num_angles - len(list_routes)
             if num_missing > 0:
-                list_routes.extend(
-                    [
-                        RouteJax(route_best.x[-1], route_best.y[-1], t, theta)
-                        for theta in np.linspace(
-                            cone_center - self.angle_delta,
-                            cone_center + self.angle_delta,
-                            self.num_angles,
-                        )
-                    ]
+                thetas = np.linspace(
+                    cone_center - self.angle_delta,
+                    cone_center + self.angle_delta,
+                    self.num_angles,
                 )
+                route_new = deepcopy(route_best)
+                for theta in thetas:
+                    route_new.theta = route_new.theta.at[-1].set(theta)
+                    list_routes.append(deepcopy(route_new))
 
             if x == x_old and y == y_old:
                 break

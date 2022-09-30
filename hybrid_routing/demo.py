@@ -16,6 +16,7 @@ http://localhost:8501
 
 import inspect
 import sys
+from copy import deepcopy
 from math import atan2, cos, pi, sin, sqrt
 from typing import List
 
@@ -35,8 +36,7 @@ X_START, Y_START = 0.0, 0.0
 X_END, Y_END = 6.0, 2.0
 VEL_MIN, VEL, VEL_MAX = 0.1, 1.0, 2.0
 TIME_MIN, TIME, TIME_MAX = 0.1, 0.5, 2.0
-NUM_ITER_DNJ = 50
-NUM_ITER_DNJ_END = 500
+NUM_ITER_DNJ = 2000
 
 st.set_page_config(
     layout="centered", page_icon="img/dalhousie.png", page_title="Hybrid Routing"
@@ -220,47 +220,29 @@ remove_plot_lines_temporal()
 #######
 
 if do_run:
-    # Initialize both raw optimized route and optimized route with DNJ
-    route_raw = RouteJax(x=x_start, y=y_start, t=0)
-    route_dnj = RouteJax(x=x_start, y=y_start, t=0)
     # Build iteration over optimization
     iter_optim = optimizer.optimize_route(x_start, y_start, x_end, y_end)
     # Loop through optimization
     for list_routes in iter_optim:
         # Loop through the route segments
         for idx, route in enumerate(list_routes):
-            if idx == 0:
-                color = "red"
-                # The best route segment is appended to the optimal route
-                route_raw.append_points(route.x, route.y, route.t)
-                route_dnj.append_points(route.x, route.y, route.t)
-            else:
-                color = "grey"
+            color = "red" if idx == 0 else "grey"
             # Plot the route segment
-            plt.plot(route.x, route.y, color=color, linestyle="-", alpha=0.4)
+            line = plt.plot(route.x, route.y, color=color, linestyle="-", alpha=0.4)
+            LIST_PLOT_TEMP.append(line)
 
-        # Apply DNJ to the optimal route
-        dnj.optimize_route(route_dnj, num_iter=NUM_ITER_DNJ)
-        # Plot both raw and DNJ optimized routes
-        line_raw = plt.plot(
-            route_raw.x, route_raw.y, color="orange", linestyle="--", alpha=0.6
-        )
-        line_dnj = plt.plot(
-            route_dnj.x, route_dnj.y, color="green", linestyle="--", alpha=0.7
-        )
-        # Include this lines in the temporal dict, they will be updated in each iteration
-        LIST_PLOT_TEMP.extend([line_raw, line_dnj])
         plot.pyplot(fig=fig)
         remove_plot_lines_temporal()
 
-    # Once optimization finishes, append last point
-    t_end = 0
-    route_raw.append_point_end(x=x_end, y=y_end, vel=vel)
-    route_dnj.append_point_end(x=x_end, y=y_end, vel=vel)
-    dnj.optimize_route(route, num_iter=NUM_ITER_DNJ_END)
+    # Once optimization finishes, append last point to best route
+    route: RouteJax = list_routes[0]
+    route.append_point_end(x=x_end, y=y_end, vel=vel)
+    plt.plot(route.x, route.y, color="red", linestyle="--", alpha=0.7)
+    plot.pyplot(fig=fig)
 
-    # Plot both raw and DNJ optimized routes
-    plt.plot(route_raw.x, route_raw.y, color="orange", linestyle="--", alpha=0.6)
+    # Apply DNJ to best route
+    route_dnj: RouteJax = deepcopy(route)
+    dnj.optimize_route(route_dnj, num_iter=NUM_ITER_DNJ)
     plt.plot(route_dnj.x, route_dnj.y, color="green", linestyle="--", alpha=0.7)
     plot.pyplot(fig=fig)
     plt.close(fig)
