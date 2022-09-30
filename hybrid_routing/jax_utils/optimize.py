@@ -12,6 +12,31 @@ from hybrid_routing.utils.distance import dist_to_dest
 from hybrid_routing.vectorfields.base import Vectorfield
 
 
+def compute_cone_center(
+    x_start: float, y_start: float, x_end: float, y_end: float
+) -> float:
+    """Compute the angle between two points in radians"""
+    dx = x_end - x_start
+    dy = y_end - y_start
+    return np.arctan2(dy, dx)
+
+
+def compute_thetas_in_cone(
+    cone_center: float, angle_amplitude: float, num_angles: int
+) -> np.array:
+    # Define the search cone
+    delta = 1e-4 if angle_amplitude <= 1e-4 else angle_amplitude / 2
+    if num_angles > 1:
+        thetas = np.linspace(
+            cone_center - delta,
+            cone_center + delta,
+            num_angles,
+        )
+    else:
+        thetas = np.array([cone_center])
+    return thetas
+
+
 def min_dist_to_dest(list_routes: List[RouteJax], pt_goal: Tuple) -> int:
     """Out of a list of routes, returns the index of the route the ends
     at the minimum distance to the goal.
@@ -91,9 +116,6 @@ class Optimizer:
         # transversed during one loop
         self.dist_min = vel * time_iter if dist_min is None else dist_min
 
-        # Define the search cone
-        self.angle_delta = 1e-4 if angle_amplitude <= 1e-4 else angle_amplitude / 2
-
         # Store the other parameters
         self.time_iter = time_iter
         self.time_step = time_step
@@ -143,9 +165,7 @@ class Optimizer:
             The path that terminates closest to destination is on top.
         """
         # Compute angle between first and last point
-        dx = x_end - x_start
-        dy = y_end - y_start
-        cone_center = np.arctan2(dy, dx)
+        cone_center = compute_cone_center(x_start, y_start, x_end, y_end)
 
         # Position now
         x = x_start
@@ -157,16 +177,21 @@ class Optimizer:
             # Compute time at the end of this step
             t_end = t + self.time_iter
 
+            # Get arrays of initial coordinates for these segments
+            arr_x = np.repeat(x, self.num_angles)
+            arr_y = np.repeat(y, self.num_angles)
+            arr_theta = compute_thetas_in_cone(
+                cone_center, self.angle_amplitude, self.num_angles
+            )
+
             list_routes = self.solver(
                 self.vectorfield,
-                x,
-                y,
+                arr_x,
+                arr_y,
+                arr_theta,
                 time_start=t,
                 time_end=t_end,
                 time_step=self.time_step,
-                cone_center=cone_center,
-                angle_amplitude=self.angle_amplitude,
-                num_angles=self.num_angles,
                 vel=self.vel,
             )
 
@@ -188,9 +213,7 @@ class Optimizer:
             t = t_end
 
             # Recompute the cone center
-            dx = x_end - x
-            dy = y_end - y
-            cone_center = np.arctan2(dy, dx)
+            cone_center = compute_cone_center(x, y, x_end, y_end)
 
             # Move best route to first position
             list_routes.insert(0, list_routes.pop(idx_best))
@@ -203,9 +226,7 @@ class Optimizer:
         self, x_start: float, y_start: float, x_end: float, y_end: float
     ) -> List[RouteJax]:
         # Compute angle between first and last point
-        dx = x_end - x_start
-        dy = y_end - y_start
-        cone_center = np.arctan2(dy, dx)
+        cone_center = compute_cone_center(x_start, y_start, x_end, y_end)
 
         # Position now
         x = x_start
@@ -215,59 +236,60 @@ class Optimizer:
 
         # Initialize the routes
         # Each one starts with a different angle
+        arr_theta = compute_thetas_in_cone(
+            cone_center, self.angle_amplitude, self.num_angles
+        )
         list_routes: List[RouteJax] = [
-            RouteJax(x_start, y_start, t, theta)
-            for theta in np.linspace(
-                cone_center - self.angle_delta,
-                cone_center + self.angle_delta,
-                self.num_angles,
-            )
+            RouteJax(x_start, y_start, t, theta) for theta in arr_theta
         ]
 
         while dist_to_dest((x, y), (x_end, y_end)) > self.dist_min:
             # Compute time at the end of this step
             t_end = t + self.time_iter
 
-            # Initialize the valid routes to keep
-            list_routes_new: List[RouteJax] = []
+            # Get arrays of initial coordinates for these segments
+            arr_x = np.array([route.x[-1] for route in list_routes])
+            arr_y = np.array([route.y[-1] for route in list_routes])
+            arr_theta = np.array([route.theta[-1] for route in list_routes])
+
+            # Compute the new route segments
+            list_segments: List[RouteJax] = self.solver(
+                self.vectorfield,
+                arr_x,
+                arr_y,
+                arr_theta,
+                time_start=t,
+                time_end=t_end,
+                time_step=self.time_step,
+                vel=self.vel,
+            )
 
             # Develop each route of our previous iteration,
             # following its current heading
-            for route in list_routes:
-                route_new = self.solver(
-                    self.vectorfield,
-                    route.x[-1],
-                    route.y[-1],
-                    time_start=t,
-                    time_end=t_end,
-                    time_step=self.time_step,
-                    cone_center=route.theta[-1],
-                    angle_amplitude=0,
-                    num_angles=1,
-                    vel=self.vel,
-                )[0]
-                route.append_points(
-                    route_new.x[1:],
-                    route_new.y[1:],
-                    t=route_new.t[1:],
-                    theta=route_new.theta[1:],
-                )
-
+            for idx, route in enumerate(list_routes):
+                route_new = list_segments[idx]
                 # Compute angle between route and goal
-                dx = x_end - route_new.x[-1]
-                dy = y_end - route_new.y[-1]
+                theta_goal = compute_cone_center(
+                    route_new.x[-1], route_new.y[-1], x_end, y_end
+                )
                 # Keep routes which heading is inside search cone
-                theta_goal = np.arctan2(dy, dx)
                 delta_theta = abs(route_new.theta[-1] - theta_goal)
-                if delta_theta <= (self.angle_delta / 2):
-                    list_routes_new.append(route)
+                if delta_theta <= (self.angle_amplitude / 4):
+                    route.append_points(
+                        route_new.x[1:],
+                        route_new.y[1:],
+                        t=route_new.t[1:],
+                        theta=route_new.theta[1:],
+                    )
+                else:
+                    list_routes[idx] = None
 
-            if len(list_routes_new) == 0:
+            # Drop Nones in list
+            list_routes = [route for route in list_routes if route is not None]
+
+            if len(list_routes) == 0:
                 print("No route has gotten to destination!")
                 break
-
-            # Update the list of routes
-            list_routes = list_routes_new
 
             # The best route will be the one closest to our destination
             x_old, y_old = x, y
@@ -287,17 +309,13 @@ class Optimizer:
             num_missing = self.num_angles - len(list_routes)
             if num_missing > 0:
                 # Recompute the cone center using best route
-                dx = x_end - x
-                dy = y_end - y
-                cone_center = np.arctan2(dy, dx)
-                # Generate new thetas
-                thetas = np.linspace(
-                    cone_center - self.angle_delta,
-                    cone_center + self.angle_delta,
-                    self.num_angles,
+                cone_center = compute_cone_center(x, y, x_end, y_end)
+                # Generate new arr_theta
+                arr_theta = compute_thetas_in_cone(
+                    cone_center, self.angle_amplitude, num_missing
                 )
                 route_new = deepcopy(route_best)
-                for theta in thetas:
+                for theta in arr_theta:
                     route_new.theta = route_new.theta.at[-1].set(theta)
                     list_routes.append(deepcopy(route_new))
 
