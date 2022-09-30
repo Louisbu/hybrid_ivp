@@ -176,7 +176,9 @@ class Optimizer:
             if "route_best" in locals():
                 for idx, route_new in enumerate(list_routes):
                     route: RouteJax = deepcopy(route_best)
-                    route.append_points(route_new.x, route_new.y, t=route_new.t)
+                    route.append_points(
+                        route_new.x[1:], route_new.y[1:], t=route_new.t[1:]
+                    )
                     list_routes[idx] = route
 
             # Update the closest points and best route
@@ -246,7 +248,10 @@ class Optimizer:
                     vel=self.vel,
                 )[0]
                 route.append_points(
-                    route_new.x, route_new.y, t=route_new.t, theta=route_new.theta
+                    route_new.x[1:],
+                    route_new.y[1:],
+                    t=route_new.t[1:],
+                    theta=route_new.theta[1:],
                 )
 
                 # Compute angle between route and goal
