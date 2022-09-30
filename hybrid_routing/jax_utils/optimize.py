@@ -73,6 +73,10 @@ class Optimizer:
             Minimum terminating distance around the destination (x_end, y_end), by default None
         use_rk : bool, optional
             Use Runge-Kutta solver instead of odeint solver
+        method: str, optional
+            Method to compute the optimal route. Options are:
+            - "direction": Keeps the routes which direction points to the goal
+            - "closest": Keeps the closest route to the goal
         """
         self.vectorfield = vectorfield
 
@@ -107,7 +111,8 @@ class Optimizer:
         self, x_start: float, y_start: float, x_end: float, y_end: float
     ) -> List[RouteJax]:
         """
-        System of ODE is from Zermelo's Navigation Problem https://en.wikipedia.org/wiki/Zermelo%27s_navigation_problem#General_solution)
+        System of ODE is from Zermelo's Navigation Problem
+        https://en.wikipedia.org/wiki/Zermelo%27s_navigation_problem#General_solution)
         1) This function first computes the locally optimized paths with Scipy's ODE solver.
         Given the starting coordinates (x_start, y_start), time (t_max), speed of the ship (vel),
         and the direction the ship points in (angle_amplitude / num_angles), the ODE solver returns
