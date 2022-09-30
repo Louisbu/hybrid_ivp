@@ -66,7 +66,7 @@ dict_vectorfields = dict(
 )
 
 vectorfield_name = st.selectbox("Vector field:", sorted(dict_vectorfields.keys()))
-rowvcol1, rowvcol2, rowvcol3 = st.columns([1, 2, 1], gap="medium")
+rowvcol1, rowvcol2, rowvcol3 = st.columns([1, 1, 1], gap="medium")
 with rowvcol1:
     do_discretize = st.checkbox("Discretized", value=False)
 with rowvcol2:

@@ -248,11 +248,14 @@ class Optimizer:
                 dx = x_end - route_new.x[-1]
                 dy = y_end - route_new.y[-1]
                 # Keep routes which heading is inside search cone
-                angle_min, angle_max = (
-                    np.arctan2(dy, dx) + np.array([-1, 1]) * self.angle_delta / 2
-                )
-                if angle_min <= route_new.theta[-1] <= angle_max:
+                theta_goal = np.arctan2(dy, dx)
+                delta_theta = abs(route_new.theta[-1] - theta_goal)
+                if delta_theta <= (self.angle_delta / 2):
                     list_routes_new.append(route)
+
+            if len(list_routes_new) == 0:
+                print("No route has gotten to destination!")
+                break
 
             # Update the list of routes
             list_routes = list_routes_new
