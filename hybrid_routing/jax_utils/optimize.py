@@ -49,6 +49,7 @@ class Optimizer:
         vel: float = 5,
         dist_min: Optional[float] = None,
         use_rk: bool = False,
+        method: str = "direction",
     ):
         """Optimizer class
 
@@ -96,8 +97,13 @@ class Optimizer:
         self.angle_amplitude = angle_amplitude
         self.num_angles = num_angles
         self.vel = vel
+        if method in ["closest", "direction"]:
+            self.method = method
+        else:
+            print("Non recognized method, using 'direction'.")
+            self.method = "direction"
 
-    def _optimize_by_best(
+    def _optimize_by_closest(
         self, x_start: float, y_start: float, x_end: float, y_end: float
     ) -> List[RouteJax]:
         """
@@ -160,9 +166,18 @@ class Optimizer:
                 vel=self.vel,
             )
 
+            # The routes outputted start at the closest point
+            # We append those segments to the best route, if we have it
+            if "route_best" in locals():
+                for idx, route_new in enumerate(list_routes):
+                    route: RouteJax = deepcopy(route_best)
+                    route.append_points(route_new.x, route_new.y, t=route_new.t)
+                    list_routes[idx] = route
+
+            # Update the closest points and best route
             x_old, y_old = x, y
             idx_best = min_dist_to_dest(list_routes, (x_end, y_end))
-            route_best = list_routes[idx_best]
+            route_best = deepcopy(list_routes[idx_best])
             x, y = route_best.x[-1], route_best.y[-1]
             t = t_end
 
@@ -193,6 +208,7 @@ class Optimizer:
         t = 0
 
         # Initialize the routes
+        # Each one starts with a different angle
         list_routes: List[RouteJax] = [
             RouteJax(x_start, y_start, t, theta)
             for theta in np.linspace(
@@ -206,8 +222,11 @@ class Optimizer:
             # Compute time at the end of this step
             t_end = t + self.time_iter
 
+            # Initialize the valid routes to keep
             list_routes_new: List[RouteJax] = []
 
+            # Develop each route of our previous iteration,
+            # following its current heading
             for route in list_routes:
                 route_new = self.solver(
                     self.vectorfield,
@@ -225,38 +244,41 @@ class Optimizer:
                     route_new.x, route_new.y, t=route_new.t, theta=route_new.theta
                 )
 
-                # Compute angle between first and last point
+                # Compute angle between route and goal
                 dx = x_end - route_new.x[-1]
                 dy = y_end - route_new.y[-1]
-                # Drop routes which heading is not inside search cone
+                # Keep routes which heading is inside search cone
                 angle_min, angle_max = (
                     np.arctan2(dy, dx) + np.array([-1, 1]) * self.angle_delta / 2
                 )
-                if route_new.theta[-1] > angle_max or route_new.theta[-1] < angle_min:
-                    pass
-                else:
+                if angle_min <= route_new.theta[-1] <= angle_max:
                     list_routes_new.append(route)
 
+            # Update the list of routes
             list_routes = list_routes_new
 
+            # The best route will be the one closest to our destination
             x_old, y_old = x, y
             idx_best = min_dist_to_dest(list_routes, (x_end, y_end))
             route_best = list_routes[idx_best]
             x, y = route_best.x[-1], route_best.y[-1]
             t = t_end
 
-            # Recompute the cone center
-            dx = x_end - x
-            dy = y_end - y
-            cone_center = np.arctan2(dy, dx)
-
             # Move best route to first position
             list_routes.insert(0, list_routes.pop(idx_best))
             yield list_routes
 
+            if x == x_old and y == y_old:
+                break
+
             # If routes were dropped, recompute new ones
             num_missing = self.num_angles - len(list_routes)
             if num_missing > 0:
+                # Recompute the cone center using best route
+                dx = x_end - x
+                dy = y_end - y
+                cone_center = np.arctan2(dy, dx)
+                # Generate new thetas
                 thetas = np.linspace(
                     cone_center - self.angle_delta,
                     cone_center + self.angle_delta,
@@ -267,10 +289,10 @@ class Optimizer:
                     route_new.theta = route_new.theta.at[-1].set(theta)
                     list_routes.append(deepcopy(route_new))
 
-            if x == x_old and y == y_old:
-                break
-
     def optimize_route(
         self, x_start: float, y_start: float, x_end: float, y_end: float
     ) -> List[RouteJax]:
-        return self._optimize_by_direction(x_start, y_start, x_end, y_end)
+        if self.method == "closest":
+            return self._optimize_by_closest(x_start, y_start, x_end, y_end)
+        elif self.method == "direction":
+            return self._optimize_by_direction(x_start, y_start, x_end, y_end)

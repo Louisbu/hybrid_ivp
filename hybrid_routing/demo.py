@@ -70,7 +70,7 @@ rowvcol1, rowvcol2, rowvcol3 = st.columns([1, 2, 1], gap="medium")
 with rowvcol1:
     do_discretize = st.checkbox("Discretized", value=False)
 with rowvcol2:
-    optimize_for = st.selectbox("Optimize for:", ["time", "fuel"])
+    optimize_method = st.selectbox("Optimize method:", ["direction", "closest"])
 with rowvcol3:
     use_rk = st.checkbox("Use Runge-Kutta", value=True)
 
@@ -149,6 +149,7 @@ optimizer = Optimizer(
     num_angles=num_angles,
     vel=vel,
     use_rk=use_rk,
+    method=optimize_method,
 )
 
 # DNJ
@@ -262,7 +263,7 @@ if do_run_dnj:
         q0=(x_start, y_start),
         q1=(x_end, y_end),
         time_step=time_step,
-        optimize_for=optimize_for,
+        optimize_for="fuel",
         angle_amplitude=angle * pi / 180,
         num_points=80,
         num_routes=num_angles,
