@@ -46,7 +46,7 @@ def solve_ode_zermelo(
         Returns a list with all paths generated within the search cone.
     """
     # Define the time steps
-    t = np.arange(time_start, time_end, time_step)
+    t = np.arange(time_start, time_end + time_step, time_step)
 
     list_routes: List[RouteJax] = [None] * len(thetas)
     for idx, theta in enumerate(thetas):
@@ -92,7 +92,7 @@ def solve_discretized_zermelo(
         Returns a list of all paths thats generated at each cone search. All points of the paths are of RouteJax object.
     """
 
-    t = np.arange(time_start, time_end, time_step)
+    t = np.arange(time_start, time_end + time_step, time_step)
     list_routes: List[RouteJax] = [None] * len(thetas)
 
     for idx, theta in enumerate(thetas):
@@ -159,7 +159,7 @@ def solve_rk_zermelo(
         Returns a list with all paths generated within the search cone.
     """
     # Define the time steps
-    arr_t = np.arange(time_start, time_end, time_step)
+    arr_t = np.arange(time_start, time_end + time_step, time_step)
 
     # Initializes the arrays containing the coordinates
     arr_q = [np.stack((x, y, thetas))] * len(arr_t)
