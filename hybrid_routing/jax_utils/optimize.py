@@ -243,6 +243,9 @@ class Optimizer:
             RouteJax(x_start, y_start, t, theta) for theta in arr_theta
         ]
 
+        # Initialize list of routes to stop (outside of angle threshold)
+        list_stop = []
+
         while dist_to_dest((x, y), (x_end, y_end)) > self.dist_min:
             # Compute time at the end of this step
             t_end = t + self.time_iter
@@ -267,6 +270,9 @@ class Optimizer:
             # Develop each route of our previous iteration,
             # following its current heading
             for idx, route in enumerate(list_routes):
+                # If the index is inside the list of stopped routes, skip
+                if idx in list_stop:
+                    continue
                 route_new = list_segments[idx]
                 # Compute angle between route and goal
                 theta_goal = compute_cone_center(
@@ -282,42 +288,36 @@ class Optimizer:
                         theta=route_new.theta[1:],
                     )
                 else:
-                    list_routes[idx] = None
+                    list_stop.append(idx)
 
-            # Drop Nones in list
-            list_routes = [route for route in list_routes if route is not None]
-
-            if len(list_routes) == 0:
-                print("No route has gotten to destination!")
-                break
+            # If all routes have been stopped, generate new ones
+            if len(list_stop) == len(list_routes):
+                # Recompute the cone center using best route
+                cone_center = compute_cone_center(x, y, x_end, y_end)
+                # Generate new arr_theta
+                arr_theta = compute_thetas_in_cone(
+                    cone_center, self.angle_amplitude, self.num_angles
+                )
+                route_new = deepcopy(route_best)
+                # Reinitialize route lists
+                list_routes = []
+                list_stop = []
+                # Fill new list of routes
+                for theta in arr_theta:
+                    route_new.theta = route_new.theta.at[-1].set(theta)
+                    list_routes.append(deepcopy(route_new))
+                continue
 
             # The best route will be the one closest to our destination
-            x_old, y_old = x, y
             idx_best = min_dist_to_dest(list_routes, (x_end, y_end))
             route_best = list_routes[idx_best]
             x, y = route_best.x[-1], route_best.y[-1]
             t = t_end
 
-            # Move best route to first position
-            list_routes.insert(0, list_routes.pop(idx_best))
-            yield list_routes
-
-            if x == x_old and y == y_old:
-                break
-
-            # If routes were dropped, recompute new ones
-            num_missing = self.num_angles - len(list_routes)
-            if num_missing > 0:
-                # Recompute the cone center using best route
-                cone_center = compute_cone_center(x, y, x_end, y_end)
-                # Generate new arr_theta
-                arr_theta = compute_thetas_in_cone(
-                    cone_center, self.angle_amplitude, num_missing
-                )
-                route_new = deepcopy(route_best)
-                for theta in arr_theta:
-                    route_new.theta = route_new.theta.at[-1].set(theta)
-                    list_routes.append(deepcopy(route_new))
+            # Yield list of routes with best route in first position
+            list_routes_yield = deepcopy(list_routes)
+            list_routes_yield.insert(0, list_routes_yield.pop(idx_best))
+            yield list_routes_yield
 
     def optimize_route(
         self, x_start: float, y_start: float, x_end: float, y_end: float
