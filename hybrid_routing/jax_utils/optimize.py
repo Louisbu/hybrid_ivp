@@ -246,7 +246,8 @@ class Optimizer:
 
         # Initialize list of routes to stop (outside of angle threshold)
         list_stop: List[int] = []
-        # Define whether we are in the refine step, and the refine index
+        # Define whether the next step is refine or exploration, and the refine index
+        # We start in the exploration step, so next step is refine
         refine = True  # Refine step / Exploration step
         idx_refine = 1  # Where the best segment start + 1
 
