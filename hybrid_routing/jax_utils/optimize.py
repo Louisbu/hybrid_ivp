@@ -1,4 +1,5 @@
 from copy import deepcopy
+from readline import parse_and_bind
 from typing import List, Optional, Tuple
 
 import numpy as np
@@ -244,7 +245,10 @@ class Optimizer:
         ]
 
         # Initialize list of routes to stop (outside of angle threshold)
-        list_stop = []
+        list_stop: List[int] = []
+        # Define whether we are in the refine step, and the refine index
+        refine = True  # Refine step / Exploration step
+        idx_refine = 1  # Where the best segment start + 1
 
         while dist_to_dest((x, y), (x_end, y_end)) > self.dist_min:
             # Compute time at the end of this step
@@ -292,20 +296,44 @@ class Optimizer:
 
             # If all routes have been stopped, generate new ones
             if len(list_stop) == len(list_routes):
-                # Recompute the cone center using best route
-                cone_center = compute_cone_center(x, y, x_end, y_end)
-                # Generate new arr_theta
-                arr_theta = compute_thetas_in_cone(
-                    cone_center, self.angle_amplitude, self.num_angles
-                )
-                route_new = deepcopy(route_best)
+                # Refine step: New routes are generated starting from
+                # the beginning of best segment, using a small cone centered
+                # around the direction of the best segment
+                if refine:
+                    # Recompute the cone center using best route
+                    cone_center = route_best.theta[idx_refine - 1]
+                    # Generate new arr_theta
+                    arr_theta = compute_thetas_in_cone(
+                        cone_center, self.angle_amplitude / 5, self.num_angles
+                    )
+                    route_new = RouteJax(
+                        route_best.x[:idx_refine],
+                        route_best.y[:idx_refine],
+                        route_best.t[:idx_refine],
+                        route_best.theta[:idx_refine],
+                    )
+                # Exploration step: New routes are generated starting from
+                # the end of the best segment, using a cone centered
+                # around the direction to the goal
+                else:
+                    # Recompute the cone center using best route
+                    cone_center = compute_cone_center(x, y, x_end, y_end)
+                    # Generate new arr_theta
+                    arr_theta = compute_thetas_in_cone(
+                        cone_center, self.angle_amplitude, self.num_angles
+                    )
+                    route_new = deepcopy(route_best)
+                    # Set the new refine index
+                    idx_refine = len(route_new.x)
                 # Reinitialize route lists
-                list_routes = []
-                list_stop = []
+                list_routes: List[RouteJax] = []
+                list_stop: List[int] = []
                 # Fill new list of routes
                 for theta in arr_theta:
                     route_new.theta = route_new.theta.at[-1].set(theta)
                     list_routes.append(deepcopy(route_new))
+                # Change next step from refine <-> exploration
+                refine = not refine
                 continue
 
             # The best route will be the one closest to our destination
