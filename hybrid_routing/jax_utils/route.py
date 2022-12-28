@@ -22,7 +22,13 @@ class RouteJax:
     def pts(self):
         return jnp.stack([self.x, self.y], axis=1)
 
-    def append_points(self, x: jnp.array, y: jnp.array, t: Optional[jnp.array] = None):
+    def append_points(
+        self,
+        x: jnp.array,
+        y: jnp.array,
+        t: Optional[jnp.array] = None,
+        theta: Optional[jnp.array] = None,
+    ):
         """Append new points to the end of the route
 
         Parameters
@@ -38,6 +44,8 @@ class RouteJax:
         self.y = jnp.concatenate([self.y, jnp.atleast_1d(y)])
         t = t if t is not None else self.t + jnp.arange(0, len(x), 1)
         self.t = jnp.concatenate([self.t, jnp.atleast_1d(t)])
+        theta = theta if theta is not None else jnp.full_like(x, self.theta[-1])
+        self.theta = jnp.concatenate([self.theta, jnp.atleast_1d(theta)])
 
     def append_point_end(self, x: float, y: float, vel: float):
         """Append an end point to the route and compute its timestamp.
