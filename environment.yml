@@ -1,4 +1,4 @@
-name: hybrid_routing
+name: hybrid-routing
 channels:
   - conda-forge
   - defaults
