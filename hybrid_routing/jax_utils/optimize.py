@@ -134,6 +134,7 @@ class Optimizer:
         else:
             print("Non recognized method, using 'direction'.")
             self.method = "direction"
+        self.exploration = None
 
     def solve_ivp(
         self, x: np.array, y: np.array, theta: np.array, t: float = 0
@@ -273,9 +274,9 @@ class Optimizer:
 
         # Initialize list of routes to stop (outside of angle threshold)
         list_stop: List[int] = []
-        # Define whether the next step is refine or exploration, and the refine index
-        # We start in the exploration step, so next step is refine
-        refine = True  # Refine step / Exploration step
+        # Define whether the next step is exploitation or exploration, and the exploitation index
+        # We start in the exploration step, so next step is exploitation
+        self.exploration = True  # Exploitation step / Exploration step
         idx_refine = 1  # Where the best segment start + 1
 
         while dist_to_dest((x, y), (x_end, y_end)) > self.dist_min:
@@ -312,10 +313,10 @@ class Optimizer:
 
             # If all routes have been stopped, generate new ones
             if len(list_stop) == len(list_routes):
-                # Refine step: New routes are generated starting from
+                # Exploitation step: New routes are generated starting from
                 # the beginning of best segment, using a small cone centered
                 # around the direction of the best segment
-                if refine:
+                if self.exploration:
                     # Recompute the cone center using best route
                     cone_center = route_best.theta[idx_refine - 1]
                     # Generate new arr_theta
@@ -339,7 +340,7 @@ class Optimizer:
                         cone_center, self.angle_amplitude, self.num_angles
                     )
                     route_new = deepcopy(route_best)
-                    # Set the new refine index
+                    # Set the new exploitation index
                     idx_refine = len(route_new.x)
                 # Reinitialize route lists
                 list_routes: List[RouteJax] = []
@@ -348,8 +349,8 @@ class Optimizer:
                 for theta in arr_theta:
                     route_new.theta = route_new.theta.at[-1].set(theta)
                     list_routes.append(deepcopy(route_new))
-                # Change next step from refine <-> exploration
-                refine = not refine
+                # Change next step from exploitation <-> exploration
+                self.exploration = not self.exploration
                 continue
 
             # The best route will be the one closest to our destination

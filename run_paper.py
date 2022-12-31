@@ -4,7 +4,6 @@ Generate all the figures used in the paper
 
 from copy import deepcopy
 from pathlib import Path
-from typing import List
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -28,7 +27,6 @@ Vectorfield and initial conditions
 vectorfield = Circular()
 
 x0, y0 = 8, 8
-xn, yn = 0, 0
 
 optimizer = Optimizer(
     vectorfield,
@@ -96,22 +94,20 @@ plt.close()
 Exploration step
 """
 
-optimizer.time_iter = 0.2
+x0, y0 = 12, 12
+xn, yn = 0, 0
+optimizer.time_iter = 0.1
 optimizer.time_step = 0.01
-optimizer.angle_amplitude = np.pi / 4
-optimizer.angle_heading = np.pi / 4
+optimizer.angle_amplitude = np.pi / 2
+optimizer.angle_heading = np.pi / 3
 run = optimizer.optimize_route(x0, y0, xn, yn)
+list_routes_explo = next(run)
 
-do_run = True
-len_max = 0
-while do_run:
-    list_routes: List[RouteJax] = next(run)
-    len_new = max(len(route) for route in list_routes)
-    if len_new > len_max:
-        len_max = len_new
+for list_routes in run:
+    if optimizer.exploration:
         list_routes_explo = deepcopy(list_routes)
     else:
-        do_run = False
+        break
 
 plot_vectorfield()
 # Plot source point
@@ -119,7 +115,6 @@ plt.scatter(x0, y0, c="green", s=20, zorder=10)
 # Plot routes
 for route in list_routes_explo:
     x, y = route.x, route.y
-    print(route)
     plt.plot(x, y, c="grey", alpha=0.9, zorder=5)
 
 # Store plot
@@ -131,3 +126,23 @@ plt.close()
 """
 Exploitation step
 """
+
+for list_routes in run:
+    if not optimizer.exploration:
+        list_routes_explo = deepcopy(list_routes)
+    else:
+        break
+
+plot_vectorfield()
+# Plot source point
+plt.scatter(x0, y0, c="green", s=20, zorder=10)
+# Plot routes
+for route in list_routes_explo:
+    x, y = route.x, route.y
+    plt.plot(x, y, c="grey", alpha=0.9, zorder=5)
+
+# Store plot
+plt.tight_layout()
+plt.savefig(path_out / "hybrid-exploitation.png")
+plt.close()
+plt.close()
