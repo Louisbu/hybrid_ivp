@@ -5,6 +5,7 @@ from pathlib import Path
 import imageio.v2 as imageio
 import matplotlib.pyplot as plt
 import numpy as np
+import typer
 
 from hybrid_routing.jax_utils.optimize import Optimizer
 from hybrid_routing.vectorfields import *
@@ -92,4 +93,4 @@ def main(
 
 
 if __name__ == "__main__":
-    main()
+    typer.run(main)
