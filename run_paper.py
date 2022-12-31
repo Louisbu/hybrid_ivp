@@ -94,8 +94,8 @@ plt.close()
 Exploration step
 """
 
-x0, y0 = 12, 12
-xn, yn = 0, 0
+x0, y0 = 12, -4
+xn, yn = 4, 14
 optimizer.time_iter = 0.1
 optimizer.time_step = 0.01
 optimizer.angle_amplitude = np.pi / 2
@@ -144,5 +144,29 @@ for route in list_routes_explo:
 # Store plot
 plt.tight_layout()
 plt.savefig(path_out / "hybrid-exploitation.png")
+plt.close()
+plt.close()
+
+"""
+Exploration step #2
+"""
+
+for list_routes in run:
+    if optimizer.exploration:
+        list_routes_explo = deepcopy(list_routes)
+    else:
+        break
+
+plot_vectorfield()
+# Plot source point
+plt.scatter(x0, y0, c="green", s=20, zorder=10)
+# Plot routes
+for route in list_routes_explo:
+    x, y = route.x, route.y
+    plt.plot(x, y, c="grey", alpha=0.9, zorder=5)
+
+# Store plot
+plt.tight_layout()
+plt.savefig(path_out / "hybrid-exploration2.png")
 plt.close()
 plt.close()
