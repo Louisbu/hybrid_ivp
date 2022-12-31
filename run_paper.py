@@ -2,12 +2,15 @@
 Generate all the figures used in the paper
 """
 
+from copy import deepcopy
 from pathlib import Path
+from typing import List
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 from hybrid_routing.jax_utils.optimize import Optimizer
+from hybrid_routing.jax_utils.route import RouteJax
 from hybrid_routing.vectorfields import Circular
 
 """
@@ -25,6 +28,7 @@ Vectorfield and initial conditions
 vectorfield = Circular()
 
 x0, y0 = 8, 8
+xn, yn = 0, 0
 
 optimizer = Optimizer(
     vectorfield,
@@ -33,7 +37,7 @@ optimizer = Optimizer(
     angle_amplitude=np.pi,
     num_angles=5,
     vel=1.5,
-    dist_min=None,
+    dist_min=0.1,
     use_rk=True,
     method="direction",
 )
@@ -87,3 +91,43 @@ plt.tight_layout()
 plt.savefig(path_out / "runge-kutta.png")
 plt.close()
 plt.close()
+
+"""
+Exploration step
+"""
+
+optimizer.time_iter = 0.2
+optimizer.time_step = 0.01
+optimizer.angle_amplitude = np.pi / 4
+optimizer.angle_heading = np.pi / 4
+run = optimizer.optimize_route(x0, y0, xn, yn)
+
+do_run = True
+len_max = 0
+while do_run:
+    list_routes: List[RouteJax] = next(run)
+    len_new = max(len(route) for route in list_routes)
+    if len_new > len_max:
+        len_max = len_new
+        list_routes_explo = deepcopy(list_routes)
+    else:
+        do_run = False
+
+plot_vectorfield()
+# Plot source point
+plt.scatter(x0, y0, c="green", s=20, zorder=10)
+# Plot routes
+for route in list_routes_explo:
+    x, y = route.x, route.y
+    print(route)
+    plt.plot(x, y, c="grey", alpha=0.9, zorder=5)
+
+# Store plot
+plt.tight_layout()
+plt.savefig(path_out / "hybrid-exploration.png")
+plt.close()
+plt.close()
+
+"""
+Exploitation step
+"""
