@@ -30,5 +30,6 @@ setuptools.setup(
         "streamlit==1.11.0",
         # "tensorflow>=2.9.0",
         # "tensorflow-probability>=0.17.0",
+        "typer",
     ],
 )

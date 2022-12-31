@@ -1,8 +1,8 @@
 from copy import deepcopy
-from readline import parse_and_bind
 from typing import List, Optional, Tuple
 
 import numpy as np
+
 from hybrid_routing.jax_utils.route import RouteJax
 from hybrid_routing.jax_utils.zivp import (
     solve_discretized_zermelo,
