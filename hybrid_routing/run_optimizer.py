@@ -22,6 +22,7 @@ def main(
     num_angles: int = 20,
     vel: float = 1,
     dist_min: float = 0.1,
+    path_out: str = "output/",
 ):
     vectorfield: Vectorfield = eval(vf)()
     if discretized:
@@ -81,8 +82,12 @@ def main(
         plt.close()
         images.append(imageio.imread(fout))
 
+    # Build output folder
+    path_out: Path = Path(path_out)
+    if not path_out.exists():
+        path_out.mkdir()
     # Convert images to gif and delete images
-    imageio.mimsave("optimizer.gif", images)
+    imageio.mimsave(path_out / "optimizer.gif", images)
     shutil.rmtree(path_img)
 
 
