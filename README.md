@@ -16,7 +16,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
-  <a href="https://github.com/ShrimpyLouis">
+  <a href="https://github.com/daniprec">
     <img src="img/dal_banner.png" alt="Logo" width="auto" height="auto">
   </a>
 </p>
@@ -216,7 +216,7 @@ Official website: https://smartshipping.es/
 
 Robert Milson - rmilson@dal.ca
 
-Project link: [https://github.com/ShrimpyLouis/hybrid_ivp](https://github.com/ShrimpyLouis/hybrid_ivp)
+Project link: [https://github.com/daniprec/hybrid_ivp](https://github.com/daniprec/hybrid_ivp)
 
 ## Acknowledgements & References
 * [Louis Bu](https://github.com/ShrimpyLouis/)
@@ -227,11 +227,11 @@ Project link: [https://github.com/ShrimpyLouis/hybrid_ivp](https://github.com/Sh
 * [Google: JAX](https://github.com/google/jax)
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/ShrimpyLouis/hybrid_ivp.svg?style=for-the-badge
-[contributors-url]: https://github.com/ShrimpyLouis/hybrid_ivp/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/ShrimpyLouis/hybrid_ivp.svg?style=for-the-badge
-[forks-url]: https://github.com/ShrimpyLouis/hybrid_ivp/network/members
-[stars-shield]: https://img.shields.io/github/stars/ShrimpyLouis/hybrid_ivp.svg?style=for-the-badge
-[stars-url]: https://github.com/ShrimpyLouis/hybrid_ivp/stargazers
-[issues-shield]: https://img.shields.io/github/issues/ShrimpyLouis/hybrid_ivp.svg?style=for-the-badge
-[issues-url]: https://github.com/ShrimpyLouis/hybrid_ivp/issues
+[contributors-shield]: https://img.shields.io/github/contributors/daniprec/hybrid_ivp.svg?style=for-the-badge
+[contributors-url]: https://github.com/daniprec/hybrid_ivp/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/daniprec/hybrid_ivp.svg?style=for-the-badge
+[forks-url]: https://github.com/daniprec/hybrid_ivp/network/members
+[stars-shield]: https://img.shields.io/github/stars/daniprec/hybrid_ivp.svg?style=for-the-badge
+[stars-url]: https://github.com/daniprec/hybrid_ivp/stargazers
+[issues-shield]: https://img.shields.io/github/issues/daniprec/hybrid_ivp.svg?style=for-the-badge
+[issues-url]: https://github.com/daniprec/hybrid_ivp/issues
