@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="hybrid_routing",
+    name="hybrid-routing",
     use_scm_version=False,
     author="Louis Bu",
     description="Smart Shipping Hybrid Routing implementation",
