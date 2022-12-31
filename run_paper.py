@@ -21,6 +21,7 @@ if not path_out.exists():
 """
 Vectorfield and initial conditions
 """
+
 vectorfield = Circular()
 
 x0, y0 = 8, 8
@@ -43,12 +44,17 @@ Run Runge-Kutta method and plot its result
 """
 
 # Initialize figure with vectorfield
-plt.figure(figsize=(6, 6))
-optimizer.vectorfield.plot(x_min=-5, x_max=15, y_min=-5, y_max=15)
-plt.gca().set_aspect("equal")
-ticks = np.arange(-5, 20, 5)
-plt.xticks(ticks)
-plt.yticks(ticks)
+# We encapsulate this code into a function because we are reusing it later
+def plot_vectorfield():
+    plt.figure(figsize=(6, 6))
+    optimizer.vectorfield.plot(x_min=-5, x_max=15, y_min=-5, y_max=15)
+    plt.gca().set_aspect("equal")
+    ticks = np.arange(-5, 20, 5)
+    plt.xticks(ticks)
+    plt.yticks(ticks)
+
+
+plot_vectorfield()
 
 # Plot source point
 plt.scatter(x0, y0, c="green", s=20, zorder=10)
@@ -79,4 +85,5 @@ plt.text(-5, -5, eq_rk, fontsize=10, verticalalignment="bottom", bbox=bbox)
 # Store plot
 plt.tight_layout()
 plt.savefig(path_out / "runge-kutta.png")
+plt.close()
 plt.close()
