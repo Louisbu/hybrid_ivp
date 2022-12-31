@@ -129,6 +129,39 @@ class Optimizer:
             print("Non recognized method, using 'direction'.")
             self.method = "direction"
 
+    def solve_ivp(
+        self, x: np.array, y: np.array, theta: np.array, t: float = 0
+    ) -> List[RouteJax]:
+        """Solve an initial value problem, given arrays of same length for
+        x, y and theta (heading, w.r.t. x-axis)
+
+        Parameters
+        ----------
+        x : np.array
+            Initial coordinate on x-axis
+        y : np.array
+            Initial coordinate on y-axis
+        theta : np.array
+            Initial heading w.r.t. x-axis, in radians
+        t : float, optional
+            Initial time, by default 0
+
+        Returns
+        -------
+        List[RouteJax]
+            Routes generated with this IVP
+        """
+        return self.solver(
+            self.vectorfield,
+            x,
+            y,
+            theta,
+            time_start=t,
+            time_end=t + self.time_iter,
+            time_step=self.time_step,
+            vel=self.vel,
+        )
+
     def _optimize_by_closest(
         self, x_start: float, y_start: float, x_end: float, y_end: float
     ) -> List[RouteJax]:
@@ -185,16 +218,7 @@ class Optimizer:
                 cone_center, self.angle_amplitude, self.num_angles
             )
 
-            list_routes = self.solver(
-                self.vectorfield,
-                arr_x,
-                arr_y,
-                arr_theta,
-                time_start=t,
-                time_end=t_end,
-                time_step=self.time_step,
-                vel=self.vel,
-            )
+            list_routes = self.solve_ivp(arr_x, arr_y, arr_theta, t=t)
 
             # The routes outputted start at the closest point
             # We append those segments to the best route, if we have it
@@ -261,16 +285,7 @@ class Optimizer:
             arr_theta = np.array([route.theta[-1] for route in list_routes])
 
             # Compute the new route segments
-            list_segments: List[RouteJax] = self.solver(
-                self.vectorfield,
-                arr_x,
-                arr_y,
-                arr_theta,
-                time_start=t,
-                time_end=t_end,
-                time_step=self.time_step,
-                vel=self.vel,
-            )
+            list_segments = self.solve_ivp(arr_x, arr_y, arr_theta, t=t)
 
             # Develop each route of our previous iteration,
             # following its current heading
