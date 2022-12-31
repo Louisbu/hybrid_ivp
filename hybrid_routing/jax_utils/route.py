@@ -1,6 +1,7 @@
 from typing import Optional
 
 import jax.numpy as jnp
+
 from hybrid_routing.utils.distance import dist_to_dest
 
 
@@ -17,6 +18,23 @@ class RouteJax:
         self.t = jnp.atleast_1d(t) if t is not None else jnp.arange(0, len(self.x), 1)
         assert len(self.x) == len(self.y) == len(self.t), "Array lengths are not equal"
         self.theta = jnp.atleast_1d(theta) if theta is not None else jnp.zeros_like(x)
+
+    def __len__(self) -> int:
+        return len(self.x)
+
+    def __repr__(self) -> str:
+        return (
+            f"RouteJax(x0={self.x[0]:.2f}, y0={self.y[0]:.2f}, "
+            f"xN={self.x[-1]:.2f}, yN={self.y[-1]:.2f}, "
+            f"length={len(self)})"
+        )
+
+    def __str__(self) -> str:
+        return (
+            f"RouteJax(x0={self.x[0]:.2f}, y0={self.y[0]:.2f}, "
+            f"xN={self.x[-1]:.2f}, yN={self.y[-1]:.2f}, "
+            f"length={len(self)})"
+        )
 
     @property
     def pts(self):
