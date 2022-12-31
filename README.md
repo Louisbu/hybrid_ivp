@@ -219,9 +219,9 @@ Robert Milson - rmilson@dal.ca
 Project link: [https://github.com/daniprec/hybrid_ivp](https://github.com/daniprec/hybrid_ivp)
 
 ## Acknowledgements & References
-* [Louis Bu](https://github.com/ShrimpyLouis/)
 * [Daniel Precioso](https://www.linkedin.com/in/daniel-precioso-garcelan/)
 * [Robert Milson](https://www.dal.ca/faculty/science/math-stats/faculty-staff/our-faculty/mathematics/robert-milson.html)
+* [Louis Bu](https://github.com/ShrimpyLouis/)
 * [Zermelo Navigation Problem](https://en.wikipedia.org/wiki/Zermelo's_navigation_problem)
 * [Parallel iterative methods for variational integration applied to navigation problems](https://arxiv.org/abs/2109.05559)
 * [Google: JAX](https://github.com/google/jax)

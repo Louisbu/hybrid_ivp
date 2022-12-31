@@ -6,8 +6,8 @@ with open("README.md", "r") as fh:
 setuptools.setup(
     name="hybrid-routing",
     use_scm_version=False,
-    author="Louis Bu",
-    description="Smart Shipping Hybrid Routing implementation",
+    author="Daniel Precioso",
+    description="Zermelo navigation problem via hybrid search",
     long_description=long_description,
     packages=setuptools.find_packages(),
     classifiers=[
