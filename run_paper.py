@@ -9,7 +9,11 @@ from typing import List
 import matplotlib.pyplot as plt
 import numpy as np
 
-from hybrid_routing.jax_utils.optimize import Optimizer
+from hybrid_routing.jax_utils.optimize import (
+    Optimizer,
+    compute_cone_center,
+    compute_thetas_in_cone,
+)
 from hybrid_routing.jax_utils.route import RouteJax
 from hybrid_routing.vectorfields import Circular
 
@@ -51,7 +55,7 @@ Run Runge-Kutta method and plot its result
 def plot_vectorfield():
     plt.figure(figsize=(5, 5))
     optimizer.vectorfield.plot(
-        x_min=-5, x_max=15, y_min=-5, y_max=15, color="grey", alpha=0.8
+        x_min=-8, x_max=18, y_min=-8, y_max=18, color="grey", alpha=0.8
     )
     plt.gca().set_aspect("equal")
     ticks = np.arange(-5, 20, 5)
@@ -85,13 +89,16 @@ $\left\langle x_0, y_0 \right\rangle = \left\langle 8, 8 \right\rangle$
 $V_0 = 1.5$
 $\theta_0 = \frac{-\pi}{4}, \frac{-\pi}{2}, \frac{-3\pi}{4}, -\pi, \frac{-5\pi}{4}$
 """
-plt.text(-5, -5, eq_rk, fontsize=10, verticalalignment="bottom", bbox=bbox)
+plt.text(-4.5, -4.5, eq_rk, fontsize=10, verticalalignment="bottom", bbox=bbox)
 
 # Store plot
+plt.xlim(-5, 15)
+plt.ylim(-5, 12)
 plt.tight_layout()
 plt.savefig(path_out / "runge-kutta.png")
 plt.close()
-plt.close()
+
+print("Runge-Kutta - Finished")
 
 """
 Exploration step
@@ -115,18 +122,33 @@ for list_routes in run:
 
 plot_vectorfield()
 
-
+# Plot each route segment
+# We encapsulate this code into a function because we are reusing it later
 def plot_routes(list_routes: List[RouteJax]):
     # Plot source point
     plt.scatter(x0, y0, c="green", s=20, zorder=10)
     plt.scatter(xn, yn, c="green", s=20, zorder=10)
     # Plot routes
-    for route in list_routes:
+    for idx, route in enumerate(list_routes):
         x, y = route.x, route.y
-        plt.plot(x, y, c="black", alpha=0.9, zorder=5)
+        # Highlight the best route of the bunch
+        s = 3 if idx == 0 else 1.5
+        plt.plot(x, y, c="black", linewidth=s, alpha=0.9, zorder=5)
 
 
 plot_routes(list_routes_plot)
+
+# Compute angles
+cone_center = compute_cone_center(x0, y0, xn, yn)
+arr_theta = compute_thetas_in_cone(
+    cone_center, optimizer.angle_amplitude, optimizer.num_angles
+)
+
+# Plot original angles
+for theta in arr_theta:
+    x = x0 + np.cos(theta) * np.array([0, 10])
+    y = y0 + np.sin(theta) * np.array([0, 10])
+    plt.plot(x, y, linestyle="--", color="orange", alpha=1, zorder=3)
 
 # Add equations
 eq_explo = r"""
@@ -134,15 +156,18 @@ $W(x,y) = \left\langle \frac{y+1}{20}, -\frac{x+3}{20}\right\rangle$
 $\left\langle x_0, y_0 \right\rangle = \left\langle 12, -4 \right\rangle$
 $\left\langle x_N, y_N \right\rangle = \left\langle 4, 12 \right\rangle$
 $V_0 = 1.5$
-$\theta_0 = \frac{3 \pi}{8}, \frac{\pi}{2}, \mathbf{\frac{5\pi}{8}}, \frac{3\pi}{4} , \frac{7\pi}{8}$
+$\theta_0 = \frac{3 \pi}{8}, \frac{\pi}{2}, \frac{5\pi}{8}, \mathbf{\frac{3\pi}{4}}, \frac{7\pi}{8}$
 """
-plt.text(-5, 14, eq_explo, fontsize=10, verticalalignment="top", bbox=bbox)
+plt.text(-6.5, 10, eq_explo, fontsize=10, verticalalignment="top", bbox=bbox)
 
 # Store plot
+plt.xlim(-7, 16)
+plt.ylim(-7, 16)
 plt.tight_layout()
 plt.savefig(path_out / "hybrid-exploration.png")
 plt.close()
-plt.close()
+
+print("Exploration step - Finished")
 
 """
 Exploitation step
@@ -157,11 +182,35 @@ for list_routes in run:
 plot_vectorfield()
 plot_routes(list_routes_plot)
 
+# Compute angles
+arr_theta = compute_thetas_in_cone(
+    3 * np.pi / 4, optimizer.angle_amplitude / 5, optimizer.num_angles
+)
+
+# Plot original angles
+for theta in arr_theta:
+    x = x0 + np.cos(theta) * np.array([0, 10])
+    y = y0 + np.sin(theta) * np.array([0, 10])
+    plt.plot(x, y, linestyle="--", color="orange", alpha=1, zorder=3)
+
+# Add equations
+eq_explo = r"""
+$W(x,y) = \left\langle \frac{y+1}{20}, -\frac{x+3}{20}\right\rangle$
+$\left\langle x_0, y_0 \right\rangle = \left\langle 12, -4 \right\rangle$
+$\left\langle x_N, y_N \right\rangle = \left\langle 4, 12 \right\rangle$
+$V_0 = 1.5$
+$\theta_0 = \frac{13 \pi}{20}, \frac{7\pi}{10}, \frac{3\pi}{4}, \mathbf{\frac{4\pi}{5}}, \frac{17\pi}{20}$
+"""
+plt.text(-6.5, -6.5, eq_explo, fontsize=10, verticalalignment="bottom", bbox=bbox)
+
 # Store plot
+plt.xlim(-7, 16)
+plt.ylim(-7, 16)
 plt.tight_layout()
 plt.savefig(path_out / "hybrid-exploitation.png")
 plt.close()
-plt.close()
+
+print("Exploitation step - Finished")
 
 """
 Exploration step #2
@@ -179,5 +228,4 @@ plot_routes(list_routes_plot)
 # Store plot
 plt.tight_layout()
 plt.savefig(path_out / "hybrid-exploration2.png")
-plt.close()
 plt.close()
