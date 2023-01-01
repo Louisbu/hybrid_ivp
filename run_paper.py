@@ -158,7 +158,7 @@ $\left\langle x_N, y_N \right\rangle = \left\langle 4, 12 \right\rangle$
 $V_0 = 1.5$
 $\theta_0 = \frac{3 \pi}{8}, \frac{\pi}{2}, \frac{5\pi}{8}, \mathbf{\frac{3\pi}{4}}, \frac{7\pi}{8}$
 """
-plt.text(-6.5, 10, eq_explo, fontsize=10, verticalalignment="top", bbox=bbox)
+plt.text(-6.5, 15.5, eq_explo, fontsize=10, verticalalignment="top", bbox=bbox)
 
 # Store plot
 plt.xlim(-7, 16)
