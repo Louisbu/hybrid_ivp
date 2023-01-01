@@ -4,6 +4,7 @@ Generate all the figures used in the paper
 
 from copy import deepcopy
 from pathlib import Path
+from typing import List
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -48,8 +49,10 @@ Run Runge-Kutta method and plot its result
 # Initialize figure with vectorfield
 # We encapsulate this code into a function because we are reusing it later
 def plot_vectorfield():
-    plt.figure(figsize=(6, 6))
-    optimizer.vectorfield.plot(x_min=-5, x_max=15, y_min=-5, y_max=15)
+    plt.figure(figsize=(5, 5))
+    optimizer.vectorfield.plot(
+        x_min=-5, x_max=15, y_min=-5, y_max=15, color="grey", alpha=0.8
+    )
     plt.gca().set_aspect("equal")
     ticks = np.arange(-5, 20, 5)
     plt.xticks(ticks)
@@ -70,7 +73,7 @@ theta = np.linspace(1, 5, 5) * -np.pi / 4
 list_segments = optimizer.solve_ivp(x, y, theta)
 for segment in list_segments:
     x, y = segment.x, segment.y
-    plt.plot(x, y, c="grey", alpha=0.9, zorder=5)
+    plt.plot(x, y, c="black", alpha=0.9, zorder=5)
     plt.scatter(x[1:-1], y[1:-1], c="orange", s=10, zorder=10)
     plt.scatter(x[-1], y[-1], c="red", s=20, zorder=10)
 
@@ -96,26 +99,44 @@ Exploration step
 
 x0, y0 = 12, -4
 xn, yn = 4, 14
+optimizer.vel = 1.5
 optimizer.time_iter = 0.1
 optimizer.time_step = 0.01
 optimizer.angle_amplitude = np.pi / 2
 optimizer.angle_heading = np.pi / 3
 run = optimizer.optimize_route(x0, y0, xn, yn)
-list_routes_explo = next(run)
+list_routes_plot = next(run)
 
 for list_routes in run:
     if optimizer.exploration:
-        list_routes_explo = deepcopy(list_routes)
+        list_routes_plot = deepcopy(list_routes)
     else:
         break
 
 plot_vectorfield()
-# Plot source point
-plt.scatter(x0, y0, c="green", s=20, zorder=10)
-# Plot routes
-for route in list_routes_explo:
-    x, y = route.x, route.y
-    plt.plot(x, y, c="grey", alpha=0.9, zorder=5)
+
+
+def plot_routes(list_routes: List[RouteJax]):
+    # Plot source point
+    plt.scatter(x0, y0, c="green", s=20, zorder=10)
+    plt.scatter(xn, yn, c="green", s=20, zorder=10)
+    # Plot routes
+    for route in list_routes:
+        x, y = route.x, route.y
+        plt.plot(x, y, c="black", alpha=0.9, zorder=5)
+
+
+plot_routes(list_routes_plot)
+
+# Add equations
+eq_explo = r"""
+$W(x,y) = \left\langle \frac{y+1}{20}, -\frac{x+3}{20}\right\rangle$
+$\left\langle x_0, y_0 \right\rangle = \left\langle 12, -4 \right\rangle$
+$\left\langle x_N, y_N \right\rangle = \left\langle 4, 12 \right\rangle$
+$V_0 = 1.5$
+$\theta_0 = \frac{3 \pi}{8}, \frac{\pi}{2}, \mathbf{\frac{5\pi}{8}}, \frac{3\pi}{4} , \frac{7\pi}{8}$
+"""
+plt.text(-5, 14, eq_explo, fontsize=10, verticalalignment="top", bbox=bbox)
 
 # Store plot
 plt.tight_layout()
@@ -129,17 +150,12 @@ Exploitation step
 
 for list_routes in run:
     if not optimizer.exploration:
-        list_routes_explo = deepcopy(list_routes)
+        list_routes_plot = deepcopy(list_routes)
     else:
         break
 
 plot_vectorfield()
-# Plot source point
-plt.scatter(x0, y0, c="green", s=20, zorder=10)
-# Plot routes
-for route in list_routes_explo:
-    x, y = route.x, route.y
-    plt.plot(x, y, c="grey", alpha=0.9, zorder=5)
+plot_routes(list_routes_plot)
 
 # Store plot
 plt.tight_layout()
@@ -153,17 +169,12 @@ Exploration step #2
 
 for list_routes in run:
     if optimizer.exploration:
-        list_routes_explo = deepcopy(list_routes)
+        list_routes_plot = deepcopy(list_routes)
     else:
         break
 
 plot_vectorfield()
-# Plot source point
-plt.scatter(x0, y0, c="green", s=20, zorder=10)
-# Plot routes
-for route in list_routes_explo:
-    x, y = route.x, route.y
-    plt.plot(x, y, c="grey", alpha=0.9, zorder=5)
+plot_routes(list_routes_plot)
 
 # Store plot
 plt.tight_layout()
