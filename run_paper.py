@@ -9,6 +9,7 @@ from typing import List
 import matplotlib.pyplot as plt
 import numpy as np
 
+from hybrid_routing.jax_utils.dnj import DNJ
 from hybrid_routing.jax_utils.optimize import (
     Optimizer,
     compute_cone_center,
@@ -213,19 +214,56 @@ plt.close()
 print("Exploitation step - Finished")
 
 """
-Exploration step #2
+Finish optimization
 """
 
 for list_routes in run:
-    if optimizer.exploration:
-        list_routes_plot = deepcopy(list_routes)
-    else:
-        break
-
+    list_routes_plot = deepcopy(list_routes)
 plot_vectorfield()
 plot_routes(list_routes_plot)
 
 # Store plot
+plt.xlim(-7, 16)
+plt.ylim(-7, 16)
 plt.tight_layout()
-plt.savefig(path_out / "hybrid-exploration2.png")
+plt.savefig(path_out / "hybrid-optimized.png")
 plt.close()
+
+print("Optimization - Finished")
+
+"""
+Discrete Newton-Jacobi
+"""
+
+dnj = DNJ(vectorfield, time_step=0.01, optimize_for="fuel")
+
+route: RouteJax = list_routes_plot[0]
+
+plot_vectorfield()
+plt.scatter(route.x[0], route.y[0], c="green", s=20, zorder=10)
+plt.scatter(route.x[-1], route.y[-1], c="green", s=20, zorder=10)
+plt.plot(route.x, route.y, c="red", linewidth=2, alpha=0.9, zorder=5)
+for n in range(5):
+    dnj.optimize_route(route, num_iter=2000)
+    s = 2 if n == 4 else 1
+    c = "black" if n == 4 else "grey"
+    alpha = 0.9 if n == 4 else 0.6
+    plt.plot(route.x, route.y, c=c, linewidth=s, alpha=alpha, zorder=5)
+
+# Add equations
+eq_explo = r"""
+$W(x,y) = \left\langle \frac{y+1}{20}, -\frac{x+3}{20}\right\rangle$
+$\left\langle x_0, y_0 \right\rangle = \left\langle 12, -4 \right\rangle$
+$\left\langle x_N, y_N \right\rangle = \left\langle 4, 12 \right\rangle$
+$V_{vessel} = 1.5$
+"""
+plt.text(-6.5, -6.5, eq_explo, fontsize=10, verticalalignment="bottom", bbox=bbox)
+
+# Store plot
+plt.xlim(-7, 16)
+plt.ylim(-7, 16)
+plt.tight_layout()
+plt.savefig(path_out / "hybrid-dnj.png")
+plt.close()
+
+print("DNJ - Finished")

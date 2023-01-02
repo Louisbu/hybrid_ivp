@@ -1,11 +1,13 @@
+import warnings
 from functools import partial
-from typing import Callable, Tuple, List
+from typing import Callable, List, Tuple
 
 import jax.numpy as jnp
 import numpy as np
+from jax import grad, jacfwd, jacrev, jit, vmap
+
 from hybrid_routing.jax_utils.route import RouteJax
 from hybrid_routing.vectorfields.base import Vectorfield
-from jax import grad, jacfwd, jacrev, jit, vmap
 
 
 # defines the hessian of our functions
@@ -98,6 +100,12 @@ class DNJ:
             # Temporal Solution: NaNs are replaced with last valid value
             mask_nan = jnp.isnan(pts)
             pts = pts.at[mask_nan].set(pts_old[mask_nan])
+        # Warn user if NaNs appeared
+        if mask_nan.any():
+            warnings.warn(
+                "There has been NaNs in the last iteration. "
+                "This may prevent optimization."
+            )
         # Update the points of the route
         route.x = pts[:, 0]
         route.y = pts[:, 1]
