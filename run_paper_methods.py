@@ -1,5 +1,5 @@
 """
-Generate all the figures used in the paper
+Generate all the figures used in the paper. Methods section
 """
 
 from copy import deepcopy
@@ -220,8 +220,12 @@ Finish optimization
 
 for list_routes in run:
     list_routes_plot = deepcopy(list_routes)
+# Append goal
+route: RouteJax = list_routes_plot[0]
+route.append_point_end(x=xn, y=yn, vel=optimizer.vel)
+
 plot_vectorfield()
-plot_routes(list_routes_plot)
+plot_routes([route])
 
 # Add equations
 eq_opt = r"""
@@ -246,8 +250,6 @@ Discrete Newton-Jacobi
 """
 
 dnj = DNJ(vectorfield, time_step=0.01, optimize_for="fuel")
-
-route: RouteJax = list_routes_plot[0]
 
 plot_vectorfield()
 plt.scatter(route.x[0], route.y[0], c="green", s=20, zorder=10)
