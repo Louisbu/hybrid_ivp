@@ -86,7 +86,7 @@ bbox = {"boxstyle": "round", "facecolor": "white", "alpha": 1}
 eq_rk = r"""
 $W(x,y) = \left\langle \frac{y+1}{20}, -\frac{x+3}{20}\right\rangle$
 $\left\langle x_0, y_0 \right\rangle = \left\langle 8, 8 \right\rangle$
-$V_0 = 1.5$
+$V_{vessel} = 1.5$
 $\theta_0 = \frac{-\pi}{4}, \frac{-\pi}{2}, \frac{-3\pi}{4}, -\pi, \frac{-5\pi}{4}$
 """
 plt.text(-4.5, -4.5, eq_rk, fontsize=10, verticalalignment="bottom", bbox=bbox)
@@ -155,7 +155,7 @@ eq_explo = r"""
 $W(x,y) = \left\langle \frac{y+1}{20}, -\frac{x+3}{20}\right\rangle$
 $\left\langle x_0, y_0 \right\rangle = \left\langle 12, -4 \right\rangle$
 $\left\langle x_N, y_N \right\rangle = \left\langle 4, 12 \right\rangle$
-$V_0 = 1.5$
+$V_{vessel} = 1.5$
 $\theta_0 = \frac{3 \pi}{8}, \frac{\pi}{2}, \frac{5\pi}{8}, \mathbf{\frac{3\pi}{4}}, \frac{7\pi}{8}$
 """
 plt.text(-6.5, 15.5, eq_explo, fontsize=10, verticalalignment="top", bbox=bbox)
@@ -198,7 +198,7 @@ eq_explo = r"""
 $W(x,y) = \left\langle \frac{y+1}{20}, -\frac{x+3}{20}\right\rangle$
 $\left\langle x_0, y_0 \right\rangle = \left\langle 12, -4 \right\rangle$
 $\left\langle x_N, y_N \right\rangle = \left\langle 4, 12 \right\rangle$
-$V_0 = 1.5$
+$V_{vessel} = 1.5$
 $\theta_0 = \frac{13 \pi}{20}, \frac{7\pi}{10}, \frac{3\pi}{4}, \mathbf{\frac{4\pi}{5}}, \frac{17\pi}{20}$
 """
 plt.text(-6.5, -6.5, eq_explo, fontsize=10, verticalalignment="bottom", bbox=bbox)
