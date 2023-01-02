@@ -56,7 +56,7 @@ route.append_point_end(x=xn, y=yn, vel=optimizer.vel)
 # Initialize figure with vectorfield
 plt.figure(figsize=(5, 5))
 vectorfield.plot(
-    x_min=-2, x_max=8, y_min=-2, y_max=8, step=0.1, color="grey", alpha=0.8
+    x_min=-2, x_max=8, y_min=-2, y_max=8, step=0.25, color="grey", alpha=0.8
 )
 plt.gca().set_aspect("equal")
 ticks = np.arange(-2, 7, 1)
