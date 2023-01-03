@@ -68,18 +68,23 @@ plt.scatter(x0, y0, c="green", s=20, zorder=10)
 plt.scatter(xn, yn, c="green", s=20, zorder=10)
 # Plot route
 plt.plot(route.x, route.y, c="red", linewidth=1, alpha=0.9, zorder=5)
+print(len(route.x), len(route.t))
+print("Time:", route.t[-1])
+# Recompute times
+route.recompute_times(optimizer.vel, vectorfield)
 print("Time:", route.t[-1])
 
 # Apply DNJ
 dnj = DNJ(vectorfield, time_step=0.01, optimize_for="fuel")
 # Apply DNJ in loop
 for n in range(5):
-    dnj.optimize_route(route, num_iter=2000)
+    dnj.optimize_route(route, num_iter=200)
     s = 2 if n == 4 else 1
     c = "black" if n == 4 else "grey"
     alpha = 0.9 if n == 4 else 0.6
     plt.plot(route.x, route.y, c=c, linewidth=s, alpha=alpha, zorder=5)
-    print("Time:", route.t[-1])
+route.recompute_times(optimizer.vel, vectorfield)
+print("Time:", route.t[-1])
 
 # Store plot
 plt.xlim(-0.5, 6.5)
