@@ -2,7 +2,6 @@ from copy import deepcopy
 from typing import List, Optional, Tuple
 
 import numpy as np
-
 from hybrid_routing.jax_utils.route import RouteJax
 from hybrid_routing.jax_utils.zivp import (
     solve_discretized_zermelo,
@@ -260,8 +259,8 @@ class Optimizer:
         # Position now
         x = x_start
         y = y_start
-        # Time now
-        t = 0
+        t = 0  # Time now
+        t_last = -1  # Time of last loop, used to avoid infinite loops
 
         # Initialize the routes
         # Each one starts with a different angle
@@ -278,8 +277,9 @@ class Optimizer:
         # We start in the exploration step, so next step is exploitation
         self.exploration = True  # Exploitation step / Exploration step
         idx_refine = 1  # Where the best segment start + 1
-
-        while dist_to_dest((x, y), (x_end, y_end)) > self.dist_min:
+        # The loop continues until the algorithm reaches the end or it gets stuck
+        while (dist_to_dest((x, y), (x_end, y_end)) > self.dist_min) and (t != t_last):
+            t_last = t  # Update time of last loop
             # Get arrays of initial coordinates for these segments
             arr_x = np.array([route.x[-1] for route in list_routes])
             arr_y = np.array([route.y[-1] for route in list_routes])
@@ -313,10 +313,25 @@ class Optimizer:
 
             # If all routes have been stopped, generate new ones
             if len(list_stop) == len(list_routes):
-                # Exploitation step: New routes are generated starting from
-                # the beginning of best segment, using a small cone centered
-                # around the direction of the best segment
+                # Change next step from exploitation <-> exploration
+                self.exploration = not self.exploration
                 if self.exploration:
+                    # Exploration step: New routes are generated starting from
+                    # the end of the best segment, using a cone centered
+                    # around the direction to the goal
+                    # Recompute the cone center using best route
+                    cone_center = compute_cone_center(x, y, x_end, y_end)
+                    # Generate new arr_theta
+                    arr_theta = compute_thetas_in_cone(
+                        cone_center, self.angle_amplitude, self.num_angles
+                    )
+                    route_new = deepcopy(route_best)
+                    # Set the new exploitation index
+                    idx_refine = len(route_new.x)
+                else:
+                    # Exploitation step: New routes are generated starting from
+                    # the beginning of best segment, using a small cone centered
+                    # around the direction of the best segment
                     # Recompute the cone center using best route
                     cone_center = route_best.theta[idx_refine - 1]
                     # Generate new arr_theta
@@ -329,19 +344,6 @@ class Optimizer:
                         route_best.t[:idx_refine],
                         route_best.theta[:idx_refine],
                     )
-                # Exploration step: New routes are generated starting from
-                # the end of the best segment, using a cone centered
-                # around the direction to the goal
-                else:
-                    # Recompute the cone center using best route
-                    cone_center = compute_cone_center(x, y, x_end, y_end)
-                    # Generate new arr_theta
-                    arr_theta = compute_thetas_in_cone(
-                        cone_center, self.angle_amplitude, self.num_angles
-                    )
-                    route_new = deepcopy(route_best)
-                    # Set the new exploitation index
-                    idx_refine = len(route_new.x)
                 # Reinitialize route lists
                 list_routes: List[RouteJax] = []
                 list_stop: List[int] = []
@@ -349,8 +351,9 @@ class Optimizer:
                 for theta in arr_theta:
                     route_new.theta = route_new.theta.at[-1].set(theta)
                     list_routes.append(deepcopy(route_new))
-                # Change next step from exploitation <-> exploration
-                self.exploration = not self.exploration
+                # Update the time of the last point, will go backwards when changing
+                # from exploration to exploitation
+                t = route_new.t[-1]
                 continue
 
             # The best route will be the one closest to our destination
