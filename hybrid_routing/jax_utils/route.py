@@ -90,7 +90,7 @@ class RouteJax:
         t = dist / vel + self.t[-1]
         self.append_points(x, y, t)
 
-    def recompute_times(self, vel: float, vf: Vectorfield):
+    def recompute_times(self, vel: float, vf: Vectorfield, interp: bool = True):
         """Given a vessel velocity and a vectorfield, recompute the
         times for each coordinate contained in the route
 
@@ -100,8 +100,17 @@ class RouteJax:
             Vessel velocity
         vf : Vectorfield
             Vectorfield
+        interp : bool, optional
+            Interpolate route points to x10 more before recomputing times.
+            This should improve the accuracy, by default True
         """
         x, y = self.x, self.y
+        if interp:
+            # Interpolate route to x10 points to improve the precision
+            i = np.linspace(0, len(x), num=10 * len(x))
+            j = np.linspace(0, len(x), num=len(x))
+            x = np.interp(i, j, x)
+            y = np.interp(i, j, y)
         # Angle over ground and the distance between points
         a_g = ang_between_coords(x, y)
         d = dist_between_coords(x, y)
@@ -123,4 +132,9 @@ class RouteJax:
         t = np.divide(d, v_g)
         assert (t >= 0).all(), "There can't be negative times. Raise vessel velocity."
         # Update route times
-        self.t = np.concatenate([[0], np.cumsum(t)])
+        t = np.concatenate([[0], np.cumsum(t)])
+        if interp:
+            # If we interpolated to x10 points, get the original ones
+            self.t = np.interp(j, i, t)
+        else:
+            self.t = t
