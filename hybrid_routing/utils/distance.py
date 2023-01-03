@@ -10,7 +10,7 @@ def dist_to_dest(p0: Tuple[float], p1: Tuple[float]) -> float:
 
 def dist_between_coords(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     """Return euclidean distance between each set of points"""
-    return np.sqrt(np.power(x[1:] - x[:-1], 2) + np.power(y[1:] - y[:-1], 2))
+    return np.sqrt((x[1:] - x[:-1]) ** 2 + (y[1:] - y[:-1]) ** 2)
 
 
 def ang_between_coords(x: np.ndarray, y: np.ndarray) -> np.ndarray:
@@ -23,7 +23,7 @@ def ang_between_coords(x: np.ndarray, y: np.ndarray) -> np.ndarray:
 def components_to_ang_mod(x: np.ndarray, y: np.ndarray) -> Tuple[np.ndarray]:
     """Gets vector components, returns angle (rad) and module"""
     a = np.arctan2(x, y)
-    m = np.mod(x, y)
+    m = np.sqrt(x**2 + y**2)
     return a, m
 
 
