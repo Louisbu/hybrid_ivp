@@ -5,12 +5,18 @@ from pathlib import Path
 import imageio.v2 as imageio
 import matplotlib.pyplot as plt
 import numpy as np
+import typer
 
 from hybrid_routing.jax_utils.dnj import DNJRandomGuess
 from hybrid_routing.vectorfields import FourVortices
 
 
-def main(time_step: float = 0.1, num_points: int = 80, num_routes: int = 50):
+def main(
+    time_step: float = 0.1,
+    num_points: int = 80,
+    num_routes: int = 50,
+    path_out: str = "output",
+):
     vectorfield = FourVortices()
     q0 = (0, 0)
     q1 = (6, 2)
@@ -46,10 +52,14 @@ def main(time_step: float = 0.1, num_points: int = 80, num_routes: int = 50):
         plt.savefig(fout)
         plt.close()
         images.append(imageio.imread(fout))
+    # Build output folder
+    path_out: Path = Path(path_out)
+    if not path_out.exists():
+        path_out.mkdir()
     # Convert images to gif and delete images
-    imageio.mimsave("dnj.gif", images)
+    imageio.mimsave(path_out / "dnj.gif", images)
     shutil.rmtree(path_img)
 
 
 if __name__ == "__main__":
-    main()
+    typer.run(main)

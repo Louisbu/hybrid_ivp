@@ -4,10 +4,10 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="hybrid_routing",
+    name="hybrid-routing",
     use_scm_version=False,
-    author="Louis Bu",
-    description="Smart Shipping Hybrid Routing implementation",
+    author="Daniel Precioso",
+    description="Zermelo navigation problem via hybrid search",
     long_description=long_description,
     packages=setuptools.find_packages(),
     classifiers=[
@@ -30,5 +30,6 @@ setuptools.setup(
         "streamlit==1.11.0",
         # "tensorflow>=2.9.0",
         # "tensorflow-probability>=0.17.0",
+        "typer",
     ],
 )

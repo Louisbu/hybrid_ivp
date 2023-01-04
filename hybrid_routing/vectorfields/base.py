@@ -134,7 +134,7 @@ class Vectorfield(ABC):
         y_min: float = -4,
         y_max: float = 4,
         step: float = 1,
-        color: str = "black",
+        **kwargs
     ):
         """Plots the vector field
 
@@ -153,7 +153,7 @@ class Vectorfield(ABC):
         """
         x, y = np.meshgrid(np.arange(x_min, x_max, step), np.arange(y_min, y_max, step))
         u, v = self.get_current(x, y)
-        plt.quiver(x, y, u, v, color=color)
+        plt.quiver(x, y, u, v, **kwargs)
 
 
 class VectorfieldDiscrete(Vectorfield):

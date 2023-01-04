@@ -1,5 +1,4 @@
 from copy import deepcopy
-from readline import parse_and_bind
 from typing import List, Optional, Tuple
 
 import numpy as np
@@ -70,6 +69,7 @@ class Optimizer:
         time_iter: float = 2,
         time_step: float = 0.1,
         angle_amplitude: float = np.pi,
+        angle_heading: Optional[float] = None,
         num_angles: int = 5,
         vel: float = 5,
         dist_min: Optional[float] = None,
@@ -90,6 +90,8 @@ class Optimizer:
             by default 0.1
         angle_amplitude : float, optional
             The search cone range in radians, by default pi
+        angle_heading : float, optional
+            Maximum deviation allower when optimizing direction, by default 1/4 angle amplitude
         num_angles : int, optional
             Number of initial search angles, by default 5
         vel : float, optional
@@ -121,6 +123,9 @@ class Optimizer:
         self.time_iter = time_iter
         self.time_step = time_step
         self.angle_amplitude = angle_amplitude
+        self.angle_heading = (
+            angle_amplitude / 4 if angle_heading is None else angle_heading
+        )
         self.num_angles = num_angles
         self.vel = vel
         if method in ["closest", "direction"]:
@@ -128,6 +133,40 @@ class Optimizer:
         else:
             print("Non recognized method, using 'direction'.")
             self.method = "direction"
+        self.exploration = None
+
+    def solve_ivp(
+        self, x: np.array, y: np.array, theta: np.array, t: float = 0
+    ) -> List[RouteJax]:
+        """Solve an initial value problem, given arrays of same length for
+        x, y and theta (heading, w.r.t. x-axis)
+
+        Parameters
+        ----------
+        x : np.array
+            Initial coordinate on x-axis
+        y : np.array
+            Initial coordinate on y-axis
+        theta : np.array
+            Initial heading w.r.t. x-axis, in radians
+        t : float, optional
+            Initial time, by default 0
+
+        Returns
+        -------
+        List[RouteJax]
+            Routes generated with this IVP
+        """
+        return self.solver(
+            self.vectorfield,
+            x,
+            y,
+            theta,
+            time_start=t,
+            time_end=t + self.time_iter,
+            time_step=self.time_step,
+            vel=self.vel,
+        )
 
     def _optimize_by_closest(
         self, x_start: float, y_start: float, x_end: float, y_end: float
@@ -175,9 +214,6 @@ class Optimizer:
         t = 0
 
         while dist_to_dest((x, y), (x_end, y_end)) > self.dist_min:
-            # Compute time at the end of this step
-            t_end = t + self.time_iter
-
             # Get arrays of initial coordinates for these segments
             arr_x = np.repeat(x, self.num_angles)
             arr_y = np.repeat(y, self.num_angles)
@@ -185,16 +221,7 @@ class Optimizer:
                 cone_center, self.angle_amplitude, self.num_angles
             )
 
-            list_routes = self.solver(
-                self.vectorfield,
-                arr_x,
-                arr_y,
-                arr_theta,
-                time_start=t,
-                time_end=t_end,
-                time_step=self.time_step,
-                vel=self.vel,
-            )
+            list_routes = self.solve_ivp(arr_x, arr_y, arr_theta, t=t)
 
             # The routes outputted start at the closest point
             # We append those segments to the best route, if we have it
@@ -211,7 +238,7 @@ class Optimizer:
             idx_best = min_dist_to_dest(list_routes, (x_end, y_end))
             route_best = deepcopy(list_routes[idx_best])
             x, y = route_best.x[-1], route_best.y[-1]
-            t = t_end
+            t = route_best.t[-1]
 
             # Recompute the cone center
             cone_center = compute_cone_center(x, y, x_end, y_end)
@@ -232,8 +259,8 @@ class Optimizer:
         # Position now
         x = x_start
         y = y_start
-        # Time now
-        t = 0
+        t = 0  # Time now
+        t_last = -1  # Time of last loop, used to avoid infinite loops
 
         # Initialize the routes
         # Each one starts with a different angle
@@ -246,31 +273,20 @@ class Optimizer:
 
         # Initialize list of routes to stop (outside of angle threshold)
         list_stop: List[int] = []
-        # Define whether the next step is refine or exploration, and the refine index
-        # We start in the exploration step, so next step is refine
-        refine = True  # Refine step / Exploration step
+        # Define whether the next step is exploitation or exploration, and the exploitation index
+        # We start in the exploration step, so next step is exploitation
+        self.exploration = True  # Exploitation step / Exploration step
         idx_refine = 1  # Where the best segment start + 1
-
-        while dist_to_dest((x, y), (x_end, y_end)) > self.dist_min:
-            # Compute time at the end of this step
-            t_end = t + self.time_iter
-
+        # The loop continues until the algorithm reaches the end or it gets stuck
+        while (dist_to_dest((x, y), (x_end, y_end)) > self.dist_min) and (t != t_last):
+            t_last = t  # Update time of last loop
             # Get arrays of initial coordinates for these segments
             arr_x = np.array([route.x[-1] for route in list_routes])
             arr_y = np.array([route.y[-1] for route in list_routes])
             arr_theta = np.array([route.theta[-1] for route in list_routes])
 
             # Compute the new route segments
-            list_segments: List[RouteJax] = self.solver(
-                self.vectorfield,
-                arr_x,
-                arr_y,
-                arr_theta,
-                time_start=t,
-                time_end=t_end,
-                time_step=self.time_step,
-                vel=self.vel,
-            )
+            list_segments = self.solve_ivp(arr_x, arr_y, arr_theta, t=t)
 
             # Develop each route of our previous iteration,
             # following its current heading
@@ -285,7 +301,7 @@ class Optimizer:
                 )
                 # Keep routes which heading is inside search cone
                 delta_theta = abs(route_new.theta[-1] - theta_goal)
-                if delta_theta <= (self.angle_amplitude / 4):
+                if delta_theta <= (self.angle_heading):
                     route.append_points(
                         route_new.x[1:],
                         route_new.y[1:],
@@ -297,10 +313,25 @@ class Optimizer:
 
             # If all routes have been stopped, generate new ones
             if len(list_stop) == len(list_routes):
-                # Refine step: New routes are generated starting from
-                # the beginning of best segment, using a small cone centered
-                # around the direction of the best segment
-                if refine:
+                # Change next step from exploitation <-> exploration
+                self.exploration = not self.exploration
+                if self.exploration:
+                    # Exploration step: New routes are generated starting from
+                    # the end of the best segment, using a cone centered
+                    # around the direction to the goal
+                    # Recompute the cone center using best route
+                    cone_center = compute_cone_center(x, y, x_end, y_end)
+                    # Generate new arr_theta
+                    arr_theta = compute_thetas_in_cone(
+                        cone_center, self.angle_amplitude, self.num_angles
+                    )
+                    route_new = deepcopy(route_best)
+                    # Set the new exploitation index
+                    idx_refine = len(route_new.x)
+                else:
+                    # Exploitation step: New routes are generated starting from
+                    # the beginning of best segment, using a small cone centered
+                    # around the direction of the best segment
                     # Recompute the cone center using best route
                     cone_center = route_best.theta[idx_refine - 1]
                     # Generate new arr_theta
@@ -313,19 +344,6 @@ class Optimizer:
                         route_best.t[:idx_refine],
                         route_best.theta[:idx_refine],
                     )
-                # Exploration step: New routes are generated starting from
-                # the end of the best segment, using a cone centered
-                # around the direction to the goal
-                else:
-                    # Recompute the cone center using best route
-                    cone_center = compute_cone_center(x, y, x_end, y_end)
-                    # Generate new arr_theta
-                    arr_theta = compute_thetas_in_cone(
-                        cone_center, self.angle_amplitude, self.num_angles
-                    )
-                    route_new = deepcopy(route_best)
-                    # Set the new refine index
-                    idx_refine = len(route_new.x)
                 # Reinitialize route lists
                 list_routes: List[RouteJax] = []
                 list_stop: List[int] = []
@@ -333,15 +351,16 @@ class Optimizer:
                 for theta in arr_theta:
                     route_new.theta = route_new.theta.at[-1].set(theta)
                     list_routes.append(deepcopy(route_new))
-                # Change next step from refine <-> exploration
-                refine = not refine
+                # Update the time of the last point, will go backwards when changing
+                # from exploration to exploitation
+                t = route_new.t[-1]
                 continue
 
             # The best route will be the one closest to our destination
             idx_best = min_dist_to_dest(list_routes, (x_end, y_end))
             route_best = list_routes[idx_best]
             x, y = route_best.x[-1], route_best.y[-1]
-            t = t_end
+            t = max(route.t[-1] for route in list_routes)
 
             # Yield list of routes with best route in first position
             list_routes_yield = deepcopy(list_routes)
