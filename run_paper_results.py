@@ -2,6 +2,7 @@
 Generate all the figures used in the paper. Results section
 """
 
+import json
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -20,6 +21,8 @@ path_out: Path = Path("output")
 if not path_out.exists():
     path_out.mkdir()
 
+# Initialize dict of results
+dict_results = {}
 
 """
 Vectorfield - Four Vortices
@@ -45,9 +48,8 @@ optimizer = Optimizer(
     method="direction",
 )
 
-idx = 0
 for list_routes in optimizer.optimize_route(x0, y0, xn, yn):
-    idx += 1
+    pass
 
 # Take the best route
 route: RouteJax = list_routes[0]
@@ -68,11 +70,10 @@ plt.scatter(x0, y0, c="green", s=20, zorder=10)
 plt.scatter(xn, yn, c="green", s=20, zorder=10)
 # Plot route
 plt.plot(route.x, route.y, c="red", linewidth=1, alpha=0.9, zorder=5)
-print(len(route.x), len(route.t))
-print("Time:", route.t[-1])
+time_opt = float(route.t[-1])
 # Recompute times
 route.recompute_times(optimizer.vel, vectorfield)
-print("Time:", route.t[-1])
+time_opt_rec = float(route.t[-1])
 
 # Apply DNJ
 dnj = DNJ(vectorfield, time_step=0.01, optimize_for="fuel")
@@ -84,7 +85,31 @@ for n in range(5):
     alpha = 0.9 if n == 4 else 0.6
     plt.plot(route.x, route.y, c=c, linewidth=s, alpha=alpha, zorder=5)
 route.recompute_times(optimizer.vel, vectorfield)
-print("Time:", route.t[-1])
+time_dnj = float(route.t[-1])
+
+# Times
+# Textbox properties
+dict_bbox = dict(boxstyle="round", facecolor="white", alpha=0.95)
+text = (
+    r"""
+$\left\langle x_0, y_0 \right\rangle = \left\langle 0, 0 \right\rangle$
+$\left\langle x_T, y_T \right\rangle = \left\langle 6, 2 \right\rangle$
+"""
+    + f"""
+Optimized (red):
+  t = {time_opt_rec:.3f}
+Smoothed (black):
+  t = {time_dnj:.3f}
+"""
+)
+plt.text(
+    -0.0,
+    5.5,
+    text,
+    fontsize=11,
+    verticalalignment="top",
+    bbox=dict_bbox,
+)
 
 # Store plot
 plt.xlim(-0.5, 6.5)
@@ -92,3 +117,16 @@ plt.ylim(-1.5, 6)
 plt.tight_layout()
 plt.savefig(path_out / "results-fourvortices.png")
 plt.close()
+
+# Store results
+dict_results["FourVortices"] = {
+    "Time opt": time_opt,
+    "Time opt rec": time_opt_rec,
+    "Time DNJ": time_dnj,
+}
+
+"""
+Store dictionary
+"""
+with open(path_out / "results.json", "w") as outfile:
+    json.dump(dict_results, outfile)
