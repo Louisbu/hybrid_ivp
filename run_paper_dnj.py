@@ -41,7 +41,7 @@ dnj = DNJRandomGuess(
     angle_amplitude=np.pi,
     num_points=80,
     num_routes=20,
-    num_iter=10000,
+    num_iter=5000,
 )
 
 list_routes = next(dnj)
@@ -64,19 +64,19 @@ for route in list_routes:
 plt.xlim(-0.5, 6.5)
 plt.ylim(-1.5, 6)
 plt.tight_layout()
-plt.savefig(path_out / "results-fourvortices-dnj.png")
+plt.savefig(path_out / "results-dnj-fourvortices.png")
 plt.close()
 
 # Store results
 t = [route.t[-1] for route in list_routes]
 dict_results["FourVortices"] = {
     "Times": t,
-    "Time best": max(t),
+    "Time best": min(t),
     "Time mean": np.mean(t),
 }
 
 """
 Store dictionary
 """
-with open(path_out / "results_dnj.json", "w") as outfile:
+with open(path_out / "results-dnj.json", "w") as outfile:
     json.dump(dict_results, outfile)
