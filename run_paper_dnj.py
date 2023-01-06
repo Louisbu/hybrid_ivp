@@ -19,6 +19,9 @@ path_out: Path = Path("output")
 if not path_out.exists():
     path_out.mkdir()
 
+# Initialize dict of results
+dict_results = {}
+
 """
 Vectorfield - Four Vortices
 """
@@ -38,7 +41,7 @@ dnj = DNJRandomGuess(
     angle_amplitude=np.pi,
     num_points=80,
     num_routes=20,
-    num_iter=5000,
+    num_iter=10000,
 )
 
 list_routes = next(dnj)
@@ -54,6 +57,7 @@ plt.xticks(ticks)
 plt.yticks(ticks)
 
 for route in list_routes:
+    route.recompute_times(vel=1, vf=vectorfield)
     plt.plot(route.x, route.y, c="grey", linewidth=1, alpha=0.9, zorder=5)
 
 # Store plot
@@ -62,3 +66,17 @@ plt.ylim(-1.5, 6)
 plt.tight_layout()
 plt.savefig(path_out / "results-fourvortices-dnj.png")
 plt.close()
+
+# Store results
+t = [route.t[-1] for route in list_routes]
+dict_results["FourVortices"] = {
+    "Times": t,
+    "Time best": max(t),
+    "Time mean": np.mean(t),
+}
+
+"""
+Store dictionary
+"""
+with open(path_out / "results_dnj.json", "w") as outfile:
+    json.dump(dict_results, outfile)
