@@ -1,9 +1,10 @@
 from typing import List
 
 import numpy as np
+from scipy.integrate import odeint
+
 from hybrid_routing.jax_utils.route import RouteJax
 from hybrid_routing.vectorfields.base import Vectorfield
-from scipy.integrate import odeint
 
 
 def solve_ode_zermelo(
@@ -104,6 +105,7 @@ def solve_discretized_zermelo(
         # Compute the vessel velocity components
         v_x = vel * np.cos(theta)
         v_y = vel * np.sin(theta)
+        # TODO: Ensure spherical compatibility
         # Loop through the time steps
         for idx2, _ in enumerate(t):
             # Compute the displacement, affected by the vectorfield
@@ -119,6 +121,7 @@ def solve_discretized_zermelo(
     return list_routes
 
 
+# TODO: Ensure spherical compatibility
 def solve_rk_zermelo(
     vectorfield: Vectorfield,
     x: np.array,

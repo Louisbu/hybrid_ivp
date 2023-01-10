@@ -14,15 +14,6 @@ from hybrid_routing.jax_utils.zivp import (
 from hybrid_routing.vectorfields.base import Vectorfield
 
 
-def compute_cone_center(
-    x_start: float, y_start: float, x_end: float, y_end: float
-) -> float:
-    """Compute the angle between two points in radians"""
-    dx = x_end - x_start
-    dy = y_end - y_start
-    return np.arctan2(dy, dx)
-
-
 def compute_thetas_in_cone(
     cone_center: float, angle_amplitude: float, num_angles: int
 ) -> np.array:
@@ -87,8 +78,10 @@ class Optimizer:
         # Define distance metric
         if vectorfield.spherical:
             self.dist_p0_to_p1 = spherical.dist_p0_to_p1
+            self.angle_p0_to_p1 = spherical.angle_p0_to_p1
         else:
             self.dist_p0_to_p1 = euclidean.dist_p0_to_p1
+            self.angle_p0_to_p1 = euclidean.angle_p0_to_p1
 
         # Choose solving method depends on whether the vectorfield is discrete
         if use_rk:
@@ -175,6 +168,7 @@ class Optimizer:
             vel=self.vel,
         )
 
+    # TODO: Ensure spherical compatibility
     def _optimize_by_closest(
         self, x_start: float, y_start: float, x_end: float, y_end: float
     ) -> List[RouteJax]:
@@ -212,7 +206,7 @@ class Optimizer:
             The path that terminates closest to destination is on top.
         """
         # Compute angle between first and last point
-        cone_center = compute_cone_center(x_start, y_start, x_end, y_end)
+        cone_center = self.angle_p0_to_p1((x_start, y_start), (x_end, y_end))
 
         # Position now
         x = x_start
@@ -248,7 +242,7 @@ class Optimizer:
             t = route_best.t[-1]
 
             # Recompute the cone center
-            cone_center = compute_cone_center(x, y, x_end, y_end)
+            cone_center = self.angle_p0_to_p1((x, y), (x_end, y_end))
 
             # Move best route to first position
             list_routes.insert(0, list_routes.pop(idx_best))
@@ -257,11 +251,12 @@ class Optimizer:
             if x == x_old and y == y_old:
                 break
 
+    # TODO: Ensure spherical compatibility
     def _optimize_by_direction(
         self, x_start: float, y_start: float, x_end: float, y_end: float
     ) -> List[RouteJax]:
         # Compute angle between first and last point
-        cone_center = compute_cone_center(x_start, y_start, x_end, y_end)
+        cone_center = self.angle_p0_to_p1((x_start, y_start), (x_end, y_end))
 
         # Position now
         x = x_start
@@ -305,8 +300,8 @@ class Optimizer:
                     continue
                 route_new = list_segments[idx]
                 # Compute angle between route and goal
-                theta_goal = compute_cone_center(
-                    route_new.x[-1], route_new.y[-1], x_end, y_end
+                theta_goal = self.angle_p0_to_p1(
+                    (route_new.x[-1], route_new.y[-1]), (x_end, y_end)
                 )
                 # Keep routes which heading is inside search cone
                 delta_theta = abs(route_new.theta[-1] - theta_goal)
@@ -329,7 +324,7 @@ class Optimizer:
                     # the end of the best segment, using a cone centered
                     # around the direction to the goal
                     # Recompute the cone center using best route
-                    cone_center = compute_cone_center(x, y, x_end, y_end)
+                    cone_center = self.angle_p0_to_p1((x, y), (x_end, y_end))
                     # Generate new arr_theta
                     arr_theta = compute_thetas_in_cone(
                         cone_center, self.angle_amplitude, self.num_angles

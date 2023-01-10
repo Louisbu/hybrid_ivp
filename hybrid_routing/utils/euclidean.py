@@ -8,6 +8,13 @@ def dist_p0_to_p1(p0: Tuple[float], p1: Tuple[float]) -> float:
     return np.sqrt((p0[0] - p1[0]) ** 2 + (p0[1] - p1[1]) ** 2)
 
 
+def angle_p0_to_p1(p0: Tuple[float], p1: Tuple[float]) -> float:
+    """Compute the angle between two points in radians"""
+    dx = p1[0] - p0[0]
+    dy = p1[1] - p0[1]
+    return np.arctan2(dy, dx)
+
+
 def dist_between_coords(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     """Return euclidean distance between each set of points"""
     return np.sqrt((x[1:] - x[:-1]) ** 2 + (y[1:] - y[:-1]) ** 2)
