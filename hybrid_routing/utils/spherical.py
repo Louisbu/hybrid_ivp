@@ -18,7 +18,7 @@ def dist_p0_to_p1(p0: Tuple[float], p1: Tuple[float]) -> float:
 
 
 def angle_p0_to_p1(p0: Tuple[float], p1: Tuple[float]) -> float:
-    """Return angle (in radians) between each set of points"""
+    """Return angle (in radians) between two points, w.r.t. X-axis. Returns radians."""
     a1, b1, c1 = lonlatunitvector(p0)
     a2, b2, c2 = lonlatunitvector(p1)
     gvec = np.array(
