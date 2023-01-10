@@ -12,6 +12,18 @@ def lonlatunitvector(p: Tuple[float]) -> np.array:
     return np.array([np.cos(lon) * np.cos(lat), np.sin(lon) * np.cos(lat), np.sin(lat)])
 
 
-def dist_to_dest(p0: Tuple[float], p1: Tuple[float]) -> float:
+def dist_p0_to_p1(p0: Tuple[float], p1: Tuple[float]) -> float:
     """Compute the distance between two points, defined in radians. Returns meters."""
     return RADIUS * np.arccos(np.dot(lonlatunitvector(p0), lonlatunitvector(p1)))
+
+
+def angle_p0_to_p1(p0: Tuple[float], p1: Tuple[float]) -> float:
+    """Return angle (in radians) between each set of points"""
+    a1, b1, c1 = lonlatunitvector(p0)
+    a2, b2, c2 = lonlatunitvector(p1)
+    gvec = np.array(
+        [-a2 * b1 + a1 * b2, -(a1 * a2 + b1 * b2) * c1 + (a1**2 + b1**2) * c2]
+    )
+    gd = dist_p0_to_p1(p0, p1)
+    vector = np.nan_to_num(gvec * gd / np.sqrt(gvec**2), 0)
+    return np.arctan2(vector[1], vector[0])

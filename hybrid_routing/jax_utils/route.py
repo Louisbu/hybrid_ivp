@@ -8,7 +8,7 @@ from hybrid_routing.utils.euclidean import (
     ang_mod_to_components,
     components_to_ang_mod,
     dist_between_coords,
-    dist_to_dest,
+    dist_p0_to_p1,
 )
 from hybrid_routing.vectorfields.base import Vectorfield
 
@@ -86,7 +86,7 @@ class RouteJax:
         vel : float
             Vessel velocity, typically in meters per second
         """
-        dist = dist_to_dest((self.x[-1], self.y[-1]), (x, y))
+        dist = dist_p0_to_p1((self.x[-1], self.y[-1]), (x, y))
         t = dist / vel + self.t[-1]
         self.append_points(x, y, t)
 

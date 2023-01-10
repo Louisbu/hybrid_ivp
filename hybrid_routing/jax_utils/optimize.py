@@ -86,9 +86,9 @@ class Optimizer:
 
         # Define distance metric
         if vectorfield.spherical:
-            self.dist_to_dest = spherical.dist_to_dest
+            self.dist_p0_to_p1 = spherical.dist_p0_to_p1
         else:
-            self.dist_to_dest = euclidean.dist_to_dest
+            self.dist_p0_to_p1 = euclidean.dist_p0_to_p1
 
         # Choose solving method depends on whether the vectorfield is discrete
         if use_rk:
@@ -118,7 +118,7 @@ class Optimizer:
             self.method = "direction"
         self.exploration = None
 
-    def min_dist_to_dest(self, list_routes: List[RouteJax], pt_goal: Tuple) -> int:
+    def min_dist_p0_to_p1(self, list_routes: List[RouteJax], pt_goal: Tuple) -> int:
         """Out of a list of routes, returns the index of the route the ends
         at the minimum distance to the goal.
 
@@ -136,7 +136,7 @@ class Optimizer:
         """
         min_dist = np.inf
         for idx, route in enumerate(list_routes):
-            dist = self.dist_to_dest((route.x[-1], route.y[-1]), pt_goal)
+            dist = self.dist_p0_to_p1((route.x[-1], route.y[-1]), pt_goal)
             if dist < min_dist:
                 min_dist = dist
                 idx_best_point = idx
@@ -220,7 +220,7 @@ class Optimizer:
         # Time now
         t = 0
 
-        while self.dist_to_dest((x, y), (x_end, y_end)) > self.dist_min:
+        while self.dist_p0_to_p1((x, y), (x_end, y_end)) > self.dist_min:
             # Get arrays of initial coordinates for these segments
             arr_x = np.repeat(x, self.num_angles)
             arr_y = np.repeat(y, self.num_angles)
@@ -242,7 +242,7 @@ class Optimizer:
 
             # Update the closest points and best route
             x_old, y_old = x, y
-            idx_best = self.min_dist_to_dest(list_routes, (x_end, y_end))
+            idx_best = self.min_dist_p0_to_p1(list_routes, (x_end, y_end))
             route_best = deepcopy(list_routes[idx_best])
             x, y = route_best.x[-1], route_best.y[-1]
             t = route_best.t[-1]
@@ -285,7 +285,7 @@ class Optimizer:
         self.exploration = True  # Exploitation step / Exploration step
         idx_refine = 1  # Where the best segment start + 1
         # The loop continues until the algorithm reaches the end or it gets stuck
-        while (self.dist_to_dest((x, y), (x_end, y_end)) > self.dist_min) and (
+        while (self.dist_p0_to_p1((x, y), (x_end, y_end)) > self.dist_min) and (
             t != t_last
         ):
             t_last = t  # Update time of last loop
@@ -366,7 +366,7 @@ class Optimizer:
                 continue
 
             # The best route will be the one closest to our destination
-            idx_best = self.min_dist_to_dest(list_routes, (x_end, y_end))
+            idx_best = self.min_dist_p0_to_p1(list_routes, (x_end, y_end))
             route_best = list_routes[idx_best]
             x, y = route_best.x[-1], route_best.y[-1]
             t = max(route.t[-1] for route in list_routes)
