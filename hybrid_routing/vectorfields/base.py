@@ -16,7 +16,7 @@ class Vectorfield(ABC):
         pass upon initialization, returns the current in tuples `(u, v)` given the position of the boat `(x, y)`
     """
 
-    rad2m = 6371 / (2 * np.pi)  # Radians to meters conversion
+    rad2m = jnp.float32(6367.449 / (2 * np.pi))  # Radians to meters conversion
 
     def __init__(self, spherical: bool = False):
         self._dv = jit(jacrev(self.get_current, argnums=1))
@@ -83,6 +83,7 @@ class Vectorfield(ABC):
         -------
         Iterable[float]
             A list of coordinates on the locally optimal path of length `n`, same format as `p`: `(x, y, theta)`.
+            `dxdt`, `dydt` are in m / s, `dthetadt` is in rad / s
         """
         x, y, theta = p
         u, v = self.get_current(x, y)
@@ -117,22 +118,23 @@ class Vectorfield(ABC):
         -------
         Iterable[float]
             A list of coordinates on the locally optimal path of length `n`, same format as `p`: `(x, y, theta)`.
+            `dxdt`, `dydt`, `dthetadt` are in rad / s
         """
         x, y, theta = p
-        u, v = self.get_current(x, y)
+        u, v = self.get_current(x, y)  # m / s
         st, ct = jnp.sin(theta), jnp.cos(theta)  # Assuming theta in radians
-        dxdt = vel * ct + u
-        dydt = vel * st + v
-        dvdx, dvdy = self.dv(x, y)
-        dudx, dudy = self.du(x, y)
-        
         cy = jnp.cos(y)  # Assuming y is in radians
+        dxdt = (vel * ct + u) / cy / self.rad2m  # rad / s
+        dydt = (vel * st + v) / self.rad2m  # rad / s
+        dvdx, dvdy = self.dv(x, y)  # m / (rad * s)
+        dudx, dudy = self.du(x, y)  # m / (rad * s)
+
         dthetadt = (
             dvdx * (st**2) / cy
             + st * ct * (dudx - dvdy * cy) / cy
             - dudy * ct**2
-            - ct * jnp.tan(y) * (vel + u * ct + v * st) / self.rad2m
-        )
+            - ct * jnp.tan(y) * (vel + u * ct + v * st)
+        ) / self.rad2m  # rad / s
 
         return [dxdt, dydt, dthetadt]
 

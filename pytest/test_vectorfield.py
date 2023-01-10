@@ -1,4 +1,5 @@
 import jax.numpy as jnp
+import numpy as np
 
 import pytest
 from hybrid_routing.vectorfields import Circular, NoCurrent
@@ -28,11 +29,14 @@ def test_circular_vectorfield():
 def test_ode_zermelo(x: float, theta: float, vel: float):
     vf_euclidean = Circular(spherical=False)
     vf_spherical = Circular(spherical=True)
+    # We need the conversion factor because spherical uses radians while
+    # euclidean uses meters
+    rad2m = vf_spherical.rad2m
 
     p = (x, 0, theta)
     t = [0, 5, 10]
     dx_euc, dy_euc, dt_euc = vf_euclidean.ode_zermelo(p, t, vel=vel)
     dx_sph, dy_sph, dt_sph = vf_spherical.ode_zermelo(p, t, vel=vel)
-    assert dx_euc == dx_sph, "dxdt not equal"
-    assert dy_euc == dy_sph, "dydt not equal"
-    assert dt_euc == dt_sph, "dthetadt not equal"
+    np.testing.assert_allclose(dx_euc, dx_sph * rad2m, rtol=1e-5)
+    np.testing.assert_allclose(dy_euc, dy_sph * rad2m, rtol=1e-5)
+    np.testing.assert_allclose(dt_euc, dt_sph * rad2m, rtol=1e-5)
