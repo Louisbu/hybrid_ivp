@@ -16,11 +16,15 @@ class Vectorfield(ABC):
         pass upon initialization, returns the current in tuples `(u, v)` given the position of the boat `(x, y)`
     """
 
-    is_discrete = False
-
-    def __init__(self):
+    def __init__(self, spherical: bool = False):
         self._dv = jit(jacrev(self.get_current, argnums=1))
         self._du = jit(jacfwd(self.get_current, argnums=0))
+        self.is_discrete = False
+        self.spherical = spherical
+        if spherical:
+            self.ode_zermelo = self._ode_zermelo_spherical
+        else:
+            self.ode_zermelo = self._ode_zermelo_euclidean
 
     @abstractmethod
     def get_current(self, x: jnp.array, y: jnp.array) -> jnp.array:
@@ -55,7 +59,7 @@ class Vectorfield(ABC):
         out = jnp.asarray([self._dv(x, y) for x, y in zip(x.ravel(), y.ravel())])
         return out[:, 0].reshape(x.shape), out[:, 1].reshape(x.shape)
 
-    def ode_zermelo(
+    def _ode_zermelo_euclidean(
         self,
         p: Iterable[float],
         t: Iterable[float],
@@ -79,16 +83,51 @@ class Vectorfield(ABC):
             A list of coordinates on the locally optimal path of length `n`, same format as `p`: `(x, y, theta)`.
         """
         x, y, theta = p
-        vector_field = self.get_current(x, y)
-        dxdt = vel * jnp.cos(theta) + vector_field[0]
-        dydt = vel * jnp.sin(theta) + vector_field[1]
+        u, v = self.get_current(x, y)
+        st, ct = jnp.sin(theta), jnp.cos(theta)
+        dxdt = vel * ct + u
+        dydt = vel * st + v
         dvdx, dvdy = self.dv(x, y)
         dudx, dudy = self.du(x, y)
-        dthetadt = (
-            dvdx * jnp.sin(theta) ** 2
-            + jnp.sin(theta) * jnp.cos(theta) * (dudx - dvdy)
-            - dudy * jnp.cos(theta) ** 2
-        )
+        dthetadt = dvdx * st**2 + st * ct * (dudx - dvdy) - dudy * ct**2
+
+        return [dxdt, dydt, dthetadt]
+
+    def _ode_zermelo_spherical(
+        self,
+        p: Iterable[float],
+        t: Iterable[float],
+        vel: jnp.float16 = jnp.float16(0.1),
+    ) -> Iterable[float]:
+        """System of ODE set up for scipy initial value problem method to solve in optimize.py
+
+        Parameters
+        ----------
+        p : Iterable[float]
+            Initial position: `(x, y, theta)`. The pair `(x,y)` is the position of the boat and
+            `theta` is heading (in radians) of the boat (with respect to the x-axis).jnp.cos(x)
+        t : Iterable[float]
+            Array of time steps, evenly spaced inverval from t_start to t_end, of length `n`.
+        vel : jnp.float16, optional
+            Speed of the boat, by default jnp.float16(0.1)
+
+        Returns
+        -------
+        Iterable[float]
+            A list of coordinates on the locally optimal path of length `n`, same format as `p`: `(x, y, theta)`.
+        """
+        x, y, theta = p
+        u, v = self.get_current(x, y)
+        st, ct = jnp.sin(theta), jnp.cos(theta)  # Assuming theta in radians
+        dxdt = vel * ct + u
+        dydt = vel * st + v
+        dvdx, dvdy = self.dv(x, y)
+        dudx, dudy = self.du(x, y)
+        k = 6371 / (2 * np.pi)  # Radians to meters conversion
+        cx = jnp.cos(x)  # Assuming x is in radians
+        dthetadt = -k * (
+            dudy * ct**2 + ct * (-dudx + dvdy * cx) * st / cx - dvdx * (st**2) / cx
+        ) - k * ct * (vel + u * ct + v * st) * jnp.tan(x)
 
         return [dxdt, dydt, dthetadt]
 
@@ -157,8 +196,6 @@ class Vectorfield(ABC):
 
 
 class VectorfieldDiscrete(Vectorfield):
-    is_discrete = True
-
     def __init__(
         self,
         vectorfield: Vectorfield,
@@ -178,6 +215,7 @@ class VectorfieldDiscrete(Vectorfield):
         # Define methods to get closest indexes
         self.closest_idx = jnp.vectorize(lambda x: jnp.argmin(jnp.abs(self.arr_x - x)))
         self.closest_idy = jnp.vectorize(lambda y: jnp.argmin(jnp.abs(self.arr_y - y)))
+        self.is_discrete = True
 
     def get_current(self, x: jnp.array, y: jnp.array) -> jnp.array:
         """Takes the current values (u,v) at a given point (x,y) on the grid.
