@@ -1,5 +1,6 @@
-from hybrid_routing.vectorfields.base import Vectorfield
 import jax.numpy as jnp
+
+from hybrid_routing.vectorfields.base import Vectorfield
 
 
 class HillBowl(Vectorfield):
@@ -14,7 +15,7 @@ class HillBowl(Vectorfield):
     def get_current(self, x: jnp.array, y: jnp.array) -> jnp.array:
         return jnp.asarray([jnp.ones(x.shape), jnp.sin(x**2 + y**2)])
 
-    def ode_zermelo(self, p, t, vel=jnp.float16(1)):
+    def _ode_zermelo_euclidean(self, p, t, vel=jnp.float16(1)):
         x, y, theta = p
         vector_field = self.get_current(x, y)
         dxdt = vel * jnp.cos(theta) + vector_field[0]

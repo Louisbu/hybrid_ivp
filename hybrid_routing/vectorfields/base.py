@@ -16,6 +16,8 @@ class Vectorfield(ABC):
         pass upon initialization, returns the current in tuples `(u, v)` given the position of the boat `(x, y)`
     """
 
+    rad2m = 6371 / (2 * np.pi)  # Radians to meters conversion
+
     def __init__(self, spherical: bool = False):
         self._dv = jit(jacrev(self.get_current, argnums=1))
         self._du = jit(jacfwd(self.get_current, argnums=0))
@@ -123,11 +125,14 @@ class Vectorfield(ABC):
         dydt = vel * st + v
         dvdx, dvdy = self.dv(x, y)
         dudx, dudy = self.du(x, y)
-        k = 6371 / (2 * np.pi)  # Radians to meters conversion
-        cx = jnp.cos(x)  # Assuming x is in radians
-        dthetadt = -k * (
-            dudy * ct**2 + ct * (-dudx + dvdy * cx) * st / cx - dvdx * (st**2) / cx
-        ) - k * ct * (vel + u * ct + v * st) * jnp.tan(x)
+        
+        cy = jnp.cos(y)  # Assuming y is in radians
+        dthetadt = (
+            dvdx * (st**2) / cy
+            + st * ct * (dudx - dvdy * cy) / cy
+            - dudy * ct**2
+            - ct * jnp.tan(y) * (vel + u * ct + v * st) / self.rad2m
+        )
 
         return [dxdt, dydt, dthetadt]
 

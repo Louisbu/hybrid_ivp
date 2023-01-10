@@ -1,6 +1,6 @@
-from typing import Iterable
-from hybrid_routing.vectorfields.base import Vectorfield
 import jax.numpy as jnp
+
+from hybrid_routing.vectorfields.base import Vectorfield
 
 
 class Circular(Vectorfield):

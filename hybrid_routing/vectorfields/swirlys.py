@@ -1,5 +1,6 @@
-from hybrid_routing.vectorfields.base import Vectorfield
 import jax.numpy as jnp
+
+from hybrid_routing.vectorfields.base import Vectorfield
 
 
 class Swirlys(Vectorfield):
@@ -14,7 +15,7 @@ class Swirlys(Vectorfield):
     def get_current(self, x: jnp.array, y: jnp.array) -> jnp.array:
         return jnp.asarray([jnp.cos(2 * x - y - 6), 2 * jnp.sin(y) / 3 + x - 3])
 
-    def ode_zermelo(self, p, t, vel=jnp.float16(1)):
+    def _ode_zermelo_euclidean(self, p, t, vel=jnp.float16(1)):
         x, y, theta = p
         vector_field = self.get_current(x, y)
         dxdt = vel * jnp.cos(theta) + vector_field[0]
