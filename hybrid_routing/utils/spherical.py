@@ -4,6 +4,7 @@ import numpy as np
 
 RADIUS = 6367.449  # meters
 RAD2M = RADIUS / (2 * np.pi)  # Radians to meters conversion
+DEG2RAD = np.pi / 180
 
 
 def lonlatunitvector(p: Tuple[float]) -> np.array:
@@ -12,5 +13,5 @@ def lonlatunitvector(p: Tuple[float]) -> np.array:
 
 
 def dist_to_dest(p0: Tuple[float], p1: Tuple[float]) -> float:
-    """Compute the distance between two points, defined in radians."""
+    """Compute the distance between two points, defined in radians. Returns meters."""
     return RADIUS * np.arccos(np.dot(lonlatunitvector(p0), lonlatunitvector(p1)))
