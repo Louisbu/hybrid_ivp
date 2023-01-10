@@ -137,32 +137,6 @@ def pipeline(
 
 
 """
-Vectorfield - Four Vortices
-"""
-
-# We will regenerate the results from Ferraro et al.
-dict_results["FourVortices"] = pipeline(
-    vectorfield=FourVortices(),
-    x0=0,
-    y0=0,
-    xn=6,
-    yn=2,
-    xmin=-2,
-    xmax=8,
-    x_text=0,
-    y_text=5.5,
-)
-
-# Store plot
-plt.xlim(-0.5, 6.5)
-plt.ylim(-1.5, 6)
-plt.tight_layout()
-plt.savefig(path_out / "results-fourvortices.png")
-plt.close()
-
-print("Done Four Vortices vectorfield")
-
-"""
 Vectorfield - Circular
 """
 
@@ -189,12 +163,12 @@ plt.close()
 print("Done Circular vectorfield")
 
 """
-Vectorfield - Swirlys
+Vectorfield - Four Vortices
 """
 
 # We will regenerate the results from Ferraro et al.
-dict_results["Swirlys"] = pipeline(
-    vectorfield=Swirlys(),
+dict_results["FourVortices"] = pipeline(
+    vectorfield=FourVortices(),
     x0=0,
     y0=0,
     xn=6,
@@ -209,10 +183,10 @@ dict_results["Swirlys"] = pipeline(
 plt.xlim(-0.5, 6.5)
 plt.ylim(-1.5, 6)
 plt.tight_layout()
-plt.savefig(path_out / "results-swirlys.png")
+plt.savefig(path_out / "results-fourvortices.png")
 plt.close()
 
-print("Done Swirlys vectorfield")
+print("Done Four Vortices vectorfield")
 
 """
 Vectorfield - Hillbowl
@@ -224,11 +198,12 @@ dict_results["Hiwllbowl"] = pipeline(
     x0=0,
     y0=0,
     xn=6,
-    yn=2,
+    yn=4,
     xmin=-2,
     xmax=8,
     x_text=0,
     y_text=5.5,
+    vel=4,
 )
 
 # Store plot
@@ -239,6 +214,34 @@ plt.savefig(path_out / "results-hillbowl.png")
 plt.close()
 
 print("Done Hillbowl vectorfield")
+
+"""
+Vectorfield - Swirlys
+"""
+
+# We will regenerate the results from Ferraro et al.
+dict_results["Swirlys"] = pipeline(
+    vectorfield=Swirlys(),
+    x0=1,
+    y0=1,
+    xn=6,
+    yn=4,
+    xmin=-2,
+    xmax=8,
+    x_text=0,
+    y_text=5.5,
+    vel=8,
+)
+
+# Store plot
+plt.xlim(-0.5, 6.5)
+plt.ylim(-1.5, 6)
+plt.tight_layout()
+plt.savefig(path_out / "results-swirlys.png")
+plt.close()
+
+print("Done Swirlys vectorfield")
+
 
 """
 Store dictionary
