@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from jax import jacfwd, jacrev, jit
 
+from hybrid_routing.utils.spherical import RAD2M
+
 
 class Vectorfield(ABC):
     """The parent class of vector fields.
@@ -16,7 +18,7 @@ class Vectorfield(ABC):
         pass upon initialization, returns the current in tuples `(u, v)` given the position of the boat `(x, y)`
     """
 
-    rad2m = jnp.float32(6367.449 / (2 * np.pi))  # Radians to meters conversion
+    rad2m = jnp.float32(RAD2M)  # Radians to meters conversion
 
     def __init__(self, spherical: bool = False):
         self._dv = jit(jacrev(self.get_current, argnums=1))

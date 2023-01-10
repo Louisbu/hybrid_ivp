@@ -3,7 +3,7 @@ from typing import Optional
 import jax.numpy as jnp
 import numpy as np
 
-from hybrid_routing.utils.distance import (
+from hybrid_routing.utils.euclidean import (
     ang_between_coords,
     ang_mod_to_components,
     components_to_ang_mod,
