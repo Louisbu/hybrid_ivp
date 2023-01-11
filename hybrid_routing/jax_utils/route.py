@@ -48,6 +48,26 @@ class RouteJax:
     def pts(self):
         return jnp.stack([self.x, self.y], axis=1)
 
+    @property
+    def dt(self):
+        return -np.diff(self.t)
+
+    @property
+    def dx(self):
+        return -np.diff(self.x)
+
+    @property
+    def dy(self):
+        return -np.diff(self.y)
+
+    @property
+    def dxdt(self):
+        return self.dx / self.dt
+
+    @property
+    def dydt(self):
+        return self.dy / self.dt
+
     def append_points(
         self,
         x: jnp.array,
